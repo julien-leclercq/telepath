@@ -1,0 +1,4 @@
+{
+  "elm.makeCommand": "/Users/julien/Documents/persoWorkspace/transmission_ui/apps/web/assets/node_modules/.bin/elm-make",
+  "elm-format.formatOnSave": true
+}

@@ -3,16 +3,13 @@ defmodule Transmission do
   Documentation for Transmission.
   """
 
-  @doc """
-  Hello world.
+  defmodule Request do
+    @derive Poison.Encoder
+    defstruct [:tag, :method, :arguments]
+  end
 
-  ## Examples
-
-      iex> Transmission.hello
-      :world
-
-  """
-  def hello do
-    :world
+  defmodule Response do
+    @derive Poison.Encoder
+    defstruct [:tag, :result, :arguments]
   end
 end
