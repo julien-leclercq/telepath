@@ -6,7 +6,7 @@ import Html.Attributes exposing (class, attribute)
 import Navbar exposing (navView)
 import Menu exposing (menuView)
 import Types exposing (Model, Message)
-import View.Torrent exposing (torrentsView)
+import TorrentList.List as TorrentList
 
 
 torrents : Model
@@ -14,15 +14,21 @@ torrents =
     [ { id = 1
       , name = "torrent 1"
       , downloadDir = "/user/Downloads/torrents"
-      , files = [ { name = "file 1", bytesCompleted = 45, length = 176 } ]
+      , tracker = "such tracker"
+      , files =
+            [ { name = "file 1", bytesCompleted = "45", length = "176" }
+            , { name = "file 2", bytesCompleted = "38", length = "3456" }
+            ]
       }
     , { id = 2
-      , name = "torrent 3"
+      , name = "torrent 14"
+      , tracker = "very tracker"
       , downloadDir = "/user/Downloads/torrents"
       , files = []
       }
     , { id = 3
       , name = "torrent 3"
+      , tracker = "much pirate"
       , downloadDir = "/user/Downloads/torrents"
       , files = []
       }
@@ -49,7 +55,7 @@ mainView torrents =
         , div [ class "section" ]
             [ div [ class "columns" ]
                 [ menuView
-                , torrentsView torrents
+                , TorrentList.view torrents
                 ]
             ]
         ]

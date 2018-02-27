@@ -1,6 +1,7 @@
-module Types exposing (Message, Model)
+module Types exposing (..)
 
 import Data.Torrent exposing (Torrent)
+import Navigation exposing (Location)
 
 
 type alias Model =
@@ -9,3 +10,10 @@ type alias Model =
 
 type Message
     = None
+    | AddTorrent
+    | UrlChange Location
+
+
+type Route
+    = TorrentList
+    | Settings
