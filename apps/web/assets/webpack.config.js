@@ -12,6 +12,20 @@ module.exports = {
   module: {
     rules: [
       {
+         test: /\.sass$/,
+         use: ExtractTextPlugin.extract({
+           fallback: "style-loader",
+           use: ["css-loader", "sass-loader"]
+         })
+       },
+       {
+         test: /\.css$/,
+         use: ExtractTextPlugin.extract({
+           fallback: "style-loader",
+           use: [ "css-loader" ]
+         })
+       },
+      {
         test: /\.js$/,
         exclude: [/node_modules/, /priv\/static/],
         use: {
@@ -20,16 +34,6 @@ module.exports = {
             presets: ['env']
           }
         }
-      },
-      {
-        test: /\.(sass|scss)$/,
-        use: [{
-            loader: "style-loader"
-        }, {
-            loader: "css-loader"
-        }, {
-            loader: "sass-loader"
-        }]
       },
       {
         test: /\.elm$/,
@@ -43,6 +47,6 @@ module.exports = {
     noParse: [/\.elm$/]
   },
 
-  plugins: [ new ExtractTextPlugin("css/app.sass") ]
+  plugins: [ new ExtractTextPlugin("css/app.css") ]
 
 };
