@@ -4,6 +4,7 @@ import Data.Torrent exposing (Torrent)
 import Html exposing (..)
 import Html.Attributes exposing (class, attribute)
 import Navbar exposing (navView)
+import Navigation exposing (program)
 import Menu exposing (menuView)
 import Types exposing (Model, Message)
 import TorrentList.List as TorrentList
@@ -67,8 +68,9 @@ mainView torrents =
 
 main : Platform.Program Basics.Never Model Message
 main =
-    beginnerProgram
+    Navigation.program UrlChange
         { model = torrents
         , update = update
         , view = mainView
+        , subscriptions = (\_ -> Sub.none)
         }
