@@ -14,6 +14,6 @@ type Message
     | UrlChange Location
 
 
-type Route
-    = TorrentList
-    | Settings
+type Page
+    = TorrentListPage
+    | SettingsPage

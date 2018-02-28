@@ -5,61 +5,50 @@ import Html exposing (..)
 import Html.Attributes exposing (class, attribute)
 import Navbar exposing (navView)
 import Navigation exposing (program)
-import Menu exposing (menuView)
-import Types exposing (Model, Message)
-import TorrentList.List as TorrentList
+import Routing
+import Types exposing (..)
+import View exposing (mainView)
 
 
-torrents : Model
-torrents =
-    [ { id = 1
-      , name = "torrent 1"
-      , downloadDir = "/user/Downloads/torrents"
-      , tracker = "such tracker"
-      , files =
-            [ { name = "file 1", bytesCompleted = "45", length = "176" }
-            , { name = "file 2", bytesCompleted = "38", length = "3456" }
-            ]
+
+
+init : Navigation.Location -> ( Model, Cmd Message )
+init location =
+    setRoute
+        (Routing.fromLocation
+            location
+        )
+        { availableBoxes = [ seedbox ]
+        , currentBox = seedbox
+        , pageState = Loaded TorrentListPage
       }
-    , { id = 2
-      , name = "torrent 14"
-      , tracker = "very tracker"
-      , downloadDir = "/user/Downloads/torrents"
-      , files = []
-      }
-    , { id = 3
-      , name = "torrent 3"
-      , tracker = "much pirate"
-      , downloadDir = "/user/Downloads/torrents"
-      , files = []
-      }
-    ]
 
 
 
 -- UPDATE
 
 
-update : Message -> Model -> Model
-update _ model =
-    model
+update : Message -> Model -> ( Model, Cmd Message )
+update message model =
+    case message of
+        UrlChange location ->
+            setRoute (Routing.fromLocation location) model
+
+        _ ->
+            ( model, Cmd.none )
 
 
+setRoute : Maybe Routing.Route -> Model -> ( Model, Cmd Message )
+setRoute maybeRoute model =
+    case maybeRoute of
+        Nothing ->
+            ( model, Cmd.none )
 
--- View
+        Just Routing.Settings ->
+            ( { model | pageState = Loaded SettingsPage }, Cmd.none )
 
-
-mainView : Model -> Html Message
-mainView torrents =
-    div []
-        [ navView
-        , div [ class "section" ]
-            [ div [ class "columns" ]
-                [ menuView
-                , TorrentList.view torrents
-                ]
-            ]
-        ]
+        Just Routing.TorrentList ->
+            ( { model | pageState = Loaded TorrentListPage }, Cmd.none )
 
 
 
@@ -69,7 +58,7 @@ mainView torrents =
 main : Platform.Program Basics.Never Model Message
 main =
     Navigation.program UrlChange
-        { model = torrents
+        { init = init
         , update = update
         , view = mainView
         , subscriptions = (\_ -> Sub.none)

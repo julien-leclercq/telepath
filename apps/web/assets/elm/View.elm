@@ -1,16 +1,17 @@
 module View exposing (..)
 
 import DevStaticData
-import Html exposing (Html, aside, div, header, nav, p, text)
+import Html exposing (Html, a, aside, div, header, nav, p, text)
 import Html.Attributes as Attrs
+import Html.Events as Events
 import TorrentList.List as TorrentList
 import Types exposing (..)
 
 
-mainView : Route -> Html Message
-mainView route =
-    case route of
-        TorrentListPage ->
+mainView : Model -> Html Message
+mainView model =
+    case model.pageState of
+        Loaded TorrentListPage ->
             DevStaticData.torrents
                 |> TorrentList.view
                 |> appLayout
@@ -52,5 +53,6 @@ menuView =
         [ nav [ Attrs.class "menu" ]
             [ p [ Attrs.class "menu-label" ]
                 [ text "torrents" ]
+            , a [ Attrs.class "menu-label", Attrs.href "settings" ] [ text "settings" ]
             ]
         ]
