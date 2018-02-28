@@ -1,15 +1,10 @@
 module Main exposing (..)
 
-import Data.Torrent exposing (Torrent)
-import Html exposing (..)
-import Html.Attributes exposing (class, attribute)
-import Navbar exposing (navView)
+import DevStaticData exposing (..)
 import Navigation exposing (program)
 import Routing
 import Types exposing (..)
 import View exposing (mainView)
-
-
 
 
 init : Navigation.Location -> ( Model, Cmd Message )
@@ -21,7 +16,7 @@ init location =
         { availableBoxes = [ seedbox ]
         , currentBox = seedbox
         , pageState = Loaded TorrentListPage
-      }
+        }
 
 
 
