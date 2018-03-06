@@ -7,7 +7,7 @@ import Json.Decode
         , int
         , list
         )
-import Json.Decode.Pipeline exposing (..)
+import Json.Decode.Pipeline exposing (decode, required)
 
 
 type alias Torrent =

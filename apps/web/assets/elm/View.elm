@@ -1,26 +1,11 @@
 module View exposing (..)
 
-import DevStaticData
-import Html exposing (Html, a, aside, div, header, nav, p, text)
+import Html exposing (Html, a, aside, div, header, li, nav, p, text, ul)
 import Html.Attributes as Attrs
-import Html.Events as Events
-import TorrentList.List as TorrentList
-import Types exposing (..)
+import Routes
 
 
-mainView : Model -> Html Message
-mainView model =
-    case model.pageState of
-        Loaded TorrentListPage ->
-            DevStaticData.torrents
-                |> TorrentList.view
-                |> appLayout
-
-        _ ->
-            div [] [] |> appLayout
-
-
-appLayout : Html Message -> Html Message
+appLayout : Html msg -> Html msg
 appLayout view =
     div []
         [ navView
@@ -53,6 +38,28 @@ menuView =
         [ nav [ Attrs.class "menu" ]
             [ p [ Attrs.class "menu-label" ]
                 [ text "torrents" ]
-            , a [ Attrs.class "menu-label", Attrs.href "settings" ] [ text "settings" ]
+            , ul [ Attrs.class "menu-list" ]
+                [ li []
+                    [ a [ Routes.href Routes.TorrentList ] [ text "List" ] ]
+                , li []
+                    [ a [ Routes.href Routes.Settings ] [ text "Settings" ]
+                    ]
+                ]
             ]
         ]
+
+
+errorDiv maybeErrorText =
+    let
+        errorText =
+            case maybeErrorText of
+                Nothing ->
+                    "You have encountered an error OR maybe this page is not implemented yet"
+
+                Just errorText ->
+                    errorText
+    in
+        div
+            []
+            [ p [] [ text errorText ] ]
+            |> appLayout

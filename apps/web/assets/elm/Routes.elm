@@ -1,4 +1,4 @@
-module Routing exposing (..)
+module Routes exposing (..)
 
 import Html
 import Html.Attributes as Attrs
@@ -20,6 +20,7 @@ route : Url.Parser (Route -> a) a
 route =
     Url.oneOf
         [ Url.map TorrentList Url.top
+        , Url.map TorrentList (Url.s "torrents")
         , Url.map Settings (Url.s "settings")
         ]
 

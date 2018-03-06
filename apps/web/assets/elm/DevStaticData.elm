@@ -1,4 +1,4 @@
-module DevStaticData exposing (torrents, seedbox)
+module DevStaticData exposing (torrents)
 
 import Data.Torrent exposing (Torrent)
 import Types exposing (..)
@@ -28,11 +28,3 @@ torrents =
       , files = []
       }
     ]
-
-
-seedbox : Seedbox
-seedbox =
-    Remote
-        { torrents = torrents
-        , settings = { url = "", port_ = Nothing }
-        }
