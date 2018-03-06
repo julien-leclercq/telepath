@@ -1,7 +1,5 @@
-
-import '../css/app.sass'
 import "phoenix_html"
-import bulma from 'bulma/bulma.sass';
+import '../css/app.sass'
 import Elm from '../elm/Main.elm'
 
 const container = document.querySelector("#app")

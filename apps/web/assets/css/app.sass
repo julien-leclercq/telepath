@@ -1,1 +1,49 @@
-/* This file is for your main application css. */
+@import "~bulma"
+
+$font-stack:    Helvetica, sans-serif;
+$primary-color: #366;
+
+body
+  font: 100% $font-stack
+  color: $primary-color
+
+.show-files
+  display: none
+
+.show-files-label
+  font-family: FontAwesome
+
+.show-files ~ .torrent-header .show-files-label:after
+  content: "\f15c"
+
+.show-files:checked ~ .torrent-header .show-files-label:after
+  content: "hide files"
+
+.files
+  display: none
+
+.show-files:checked ~ .files
+  margin-top: 1.5rem
+  display: block
+
+.level.torrent-header
+  margin-bottom: 0
+
+.show-infos
+  display: none
+
+.show-infos ~ .torrent-header .show-infos-label:after
+  content: "show infos"
+
+.show-infos:checked ~ .torrent-header .show-infos-label:after
+  content: "hide infos"
+
+.infos
+  display: none
+
+.show-infos:checked ~.infos
+  margin-top: 1.5rem
+  display: block
+
+progress.progress
+  -webkit-appearance: progress bar
