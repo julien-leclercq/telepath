@@ -62,4 +62,3 @@ errorDiv maybeErrorText =
         div
             []
             [ p [] [ text errorText ] ]
-            |> appLayout

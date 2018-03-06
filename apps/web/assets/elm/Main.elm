@@ -1,7 +1,5 @@
 module Main exposing (..)
 
-import Data.Torrent exposing (..)
-import DevStaticData exposing (..)
 import Html exposing (Html)
 import Http
 import Navigation exposing (program)
@@ -10,7 +8,6 @@ import Pages.Settings as SettingsPage
 import Pages.Torrents as TorrentsPage
 import Views.Settings as Settings
 import Views.TorrentList.List as TorrentList
-import Types exposing (..)
 import View exposing (appLayout, errorDiv)
 
 
@@ -64,17 +61,14 @@ renderApp pageModel pageView msgMapper =
 mainView : Model -> Html Message
 mainView model =
     case model.pageState of
-        Loaded (TorrentListPage _) ->
-            renderApp DevStaticData.torrents TorrentList.view TorrentsMsg
+        Loaded (TorrentListPage torrentsModel) ->
+            renderApp torrentsModel TorrentList.view TorrentsMsg
 
         Loaded (SettingsPage settingsModel) ->
-            settingsModel
-                |> Settings.view
-                |> appLayout
-                |> Html.map SettingsMsg
+            renderApp settingsModel Settings.view SettingsMsg
 
         Loaded (ErrorPage maybeErrorText) ->
-            errorDiv maybeErrorText
+            renderApp maybeErrorText errorDiv identity
 
         _ ->
             errorDiv Nothing
@@ -90,6 +84,7 @@ type Message
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
     | SettingsLoaded (Result Http.Error SettingsPage.Model)
+    | TorrentsLoaded (Result Http.Error TorrentsPage.Model)
 
 
 update : Message -> Model -> ( Model, Cmd Message )
@@ -117,13 +112,20 @@ updatePage page message model =
 
         ( SettingsLoaded (Ok settingsModel), _ ) ->
             ( { model | pageState = Loaded <| SettingsPage settingsModel }, Cmd.none )
-                |> Debug.log "settings loaded "
 
         ( SettingsLoaded (Err error), _ ) ->
             ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading settings page" }, Cmd.none )
 
+        ( TorrentsLoaded (Ok torrentsList), _ ) ->
+            ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
+
+        ( TorrentsLoaded (Err error), _ ) ->
+            ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
+
         _ ->
-            ( model, Cmd.none )
+            message
+                |> Debug.log "Unable to catch message :"
+                |> \_ -> ( model, Cmd.none )
 
 
 setRoute : Maybe Routes.Route -> Model -> ( Model, Cmd Message )
@@ -140,7 +142,11 @@ setRoute maybeRoute model =
                 ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
         Just Routes.TorrentList ->
-            ( { model | pageState = Loaded <| TorrentListPage DevStaticData.torrents }, Cmd.none )
+            let
+                msg =
+                    Cmd.map TorrentsLoaded TorrentsPage.init
+            in
+                ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
 
 
