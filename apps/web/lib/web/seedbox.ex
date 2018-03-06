@@ -4,8 +4,8 @@ defmodule Web.Seedbox do
      [
        %{
          id: 1,
-         url: "",
-         port: nil,
+         url: "seedbox url",
+         port: 3454,
          remote: true
        }
      ]}
@@ -35,11 +35,4 @@ defmodule Web.Seedbox do
   #       , files = []
   #       }
   #     ]
-
-  # seedbox : Seedbox
-  # seedbox =
-  #     Remote
-  #         { torrents = torrents
-  #         , settings = { url = "", port_ = Nothing }
-  #         }
 end
