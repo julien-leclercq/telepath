@@ -1,12 +1,11 @@
-module TorrentList.Item exposing (..)
+module Views.TorrentList.Item exposing (..)
 
 import Data.Torrent exposing (File, Torrent)
 import Html exposing (Html, button, div, input, label, progress, span, text)
 import Html.Attributes as Attrs
-import Types exposing (..)
 
 
-view : Torrent -> Html Message
+view : Torrent -> Html msg
 view torrent =
     let
         showFileCheckId =
@@ -30,7 +29,7 @@ view torrent =
             ]
 
 
-fileView : File -> Html Message
+fileView : File -> Html msg
 fileView file =
     div [ Attrs.class "level columns" ]
         [ div [ Attrs.class "level-left column is-one-fifth" ]
@@ -43,7 +42,7 @@ fileView file =
         ]
 
 
-filesView : Torrent -> Html Message
+filesView : Torrent -> Html msg
 filesView torrent =
     div [ Attrs.class "files media" ] [ div [ Attrs.class "media-content" ] (List.map fileView torrent.files) ]
 

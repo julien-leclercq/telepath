@@ -5,7 +5,7 @@ defmodule Web.Application do
     import Supervisor.Spec
 
     children = [
-      supervisor(WebWeb.Endpoint, []),
+      supervisor(WebWeb.Endpoint, [])
     ]
 
     opts = [strategy: :one_for_one, name: Web.Supervisor]
