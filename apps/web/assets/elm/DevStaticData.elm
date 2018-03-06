@@ -1,12 +1,12 @@
 module DevStaticData exposing (torrents)
 
 import Data.Torrent exposing (Torrent)
-import Types exposing (..)
 
 
 torrents : List Torrent
 torrents =
     [ { id = 1
+      , seedboxId = 1
       , name = "torrent 1"
       , downloadDir = "/user/Downloads/torrents"
       , tracker = "such tracker"
@@ -16,12 +16,14 @@ torrents =
             ]
       }
     , { id = 2
+      , seedboxId = 1
       , name = "torrent 14"
       , tracker = "very tracker"
       , downloadDir = "/user/Downloads/torrents"
       , files = []
       }
     , { id = 3
+      , seedboxId = 1
       , name = "torrent 3"
       , tracker = "much pirate"
       , downloadDir = "/user/Downloads/torrents"
