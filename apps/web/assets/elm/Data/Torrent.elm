@@ -1,4 +1,4 @@
-module Data.Torrent exposing (Torrent, File)
+module Data.Torrent exposing (Torrent, File, torrentListDecoder)
 
 import Json.Decode
     exposing
