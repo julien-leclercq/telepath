@@ -12,6 +12,7 @@ import Json.Decode.Pipeline exposing (decode, required)
 
 type alias Torrent =
     { id : Int
+    , seedboxId : Int
     , name : String
     , downloadDir : String
     , tracker : String
@@ -30,6 +31,7 @@ torrentDecoder : Decoder Torrent
 torrentDecoder =
     decode Torrent
         |> required "id" int
+        |> required "seedbox_id" int
         |> required "name" string
         |> required "downloadDir" string
         |> required "tracker" string
