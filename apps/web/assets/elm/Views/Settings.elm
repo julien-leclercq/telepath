@@ -1,5 +1,6 @@
 module Views.Settings exposing (..)
 
+import Debug
 import Html exposing (Html, a, div, li, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
@@ -11,12 +12,7 @@ import Types
 view : Page.Model -> Html Page.Msg
 view model =
     div [ Attrs.class "container" ]
-        [ div [ Attrs.class "tabs" ]
-            [ ul []
-                [ li [] [ a [] [ text "Seedbox 1" ] ]
-                , li [ Attrs.class "is-active" ] [ a [] [ text "Add +" ] ]
-                ]
-            ]
+        [ tabs model
         ]
 
 
@@ -31,27 +27,34 @@ tab maybeMsg content =
                 Just msg ->
                     [ Events.onClick msg ]
     in
-        li attrs content
+        li attrs [ a [] content ]
 
 
-seedboxTabs : Page.Model -> List Types.Seedbox -> List (Html Page.Msg)
+seedboxTabs : Page.Model -> List (Html Page.Msg)
 seedboxTabs model =
-    case model.state of
-        Page.AddSeedbox _ ->
-            List.map (\box -> tab (Just <| Page.GoToConfig box) [ text <| Box.url box ])
+    let
+        name box =
+            if (box |> Box.url) == "" then
+                box
+                    |> Box.id
+                    |> toString
+                    |> (++) "Box "
+            else
+                Box.url box
+    in
+        case model.state of
+            Page.AddSeedbox _ ->
+                List.map (\box -> tab (Just <| Page.GoToConfig box) [ text <| name box ]) model.seedboxes
 
-        Page.ConfigSeedbox ( curBox, _ ) ->
-            List.map
-                (\box ->
-                    let
-                        url =
-                            Box.url box
-                    in
+            Page.ConfigSeedbox ( curBox, _ ) ->
+                List.map
+                    (\box ->
                         if curBox == box then
-                            tab Nothing [ text <| Box.url box ]
+                            tab Nothing [ text <| name box ]
                         else
-                            tab (Just <| Page.GoToConfig box) [ text url ]
-                )
+                            tab (Just <| Page.GoToConfig box) [ text <| name box ]
+                    )
+                    model.seedboxes
 
 
 addSeedboxTab : Page.Model -> Html Page.Msg
@@ -68,8 +71,8 @@ addSeedboxTab model =
         tab msg [ text "Add +" ]
 
 
-tabs : Page.Model -> List Types.Seedbox -> Html Page.Msg
-tabs model availableBoxes =
+tabs : Page.Model -> Html Page.Msg
+tabs model =
     div [ Attrs.class "tabs" ]
-        [ ul [] (addSeedboxTab model :: seedboxTabs model availableBoxes)
+        [ ul [] (addSeedboxTab model :: seedboxTabs model)
         ]
