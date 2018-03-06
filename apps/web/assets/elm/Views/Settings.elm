@@ -1,18 +1,17 @@
 module Views.Settings exposing (..)
 
-import Debug
-import Html exposing (Html, a, div, li, text, ul)
+import Html exposing (Html, a, br, div, input, label, li, p, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Pages.Settings as Page
 import Data.Seedbox as Box
-import Types
 
 
 view : Page.Model -> Html Page.Msg
 view model =
     div [ Attrs.class "container" ]
         [ tabs model
+        , form model
         ]
 
 
@@ -76,3 +75,28 @@ tabs model =
     div [ Attrs.class "tabs" ]
         [ ul [] (addSeedboxTab model :: seedboxTabs model)
         ]
+
+
+form : Page.Model -> Html Page.Msg
+form model =
+    let
+        formBody (Page.Remote box) =
+            [ div [ Attrs.class "field" ]
+                [ label [ Attrs.class "label" ] [ text "Url" ]
+                , div [ Attrs.class "control" ]
+                    [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.url ] []
+                    ]
+                , p [ Attrs.class "help" ] [ text "the url of your box.", br [] [], text "If your box is on the same server as your telepath, just put localhost in here" ]
+                ]
+            , div [ Attrs.class "field" ]
+                [ label [ Attrs.class "label" ] [ text "Port" ]
+                , div [ Attrs.class "control" ]
+                    [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "9091", Attrs.value box.port_ ] []
+                    ]
+                ]
+            ]
+    in
+        model
+            |> Page.pendingSeedbox
+            |> formBody
+            |> div [ Attrs.class "form" ]
