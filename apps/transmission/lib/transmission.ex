@@ -4,12 +4,11 @@ defmodule Transmission do
   """
 
   defmodule Request do
-    @derive Poison.Encoder
-    defstruct [:tag, :method, :arguments]
+    defstruct [:method, :arguments]
   end
 
   defmodule Response do
-    @derive Poison.Encoder
-    defstruct [:tag, :result, :arguments]
+    defstruct [:result, :arguments]
   end
+
 end
