@@ -100,4 +100,6 @@ defmodule Transmission do
     response.headers
     |> Enum.find(fn {key, _} -> key == @session_id_key end)
   end
+
+
 end
