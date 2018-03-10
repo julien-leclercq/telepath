@@ -57,3 +57,7 @@ url seedbox =
     case seedbox of
         Remote seedbox ->
             seedbox.url
+
+
+id (Remote seedbox) =
+    seedbox.id

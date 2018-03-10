@@ -117,7 +117,6 @@ updatePage page message model =
 
         ( SettingsLoaded (Ok settingsModel), _ ) ->
             ( { model | pageState = Loaded <| SettingsPage settingsModel }, Cmd.none )
-                |> Debug.log "settings loaded "
 
         ( SettingsLoaded (Err error), _ ) ->
             ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading settings page" }, Cmd.none )
