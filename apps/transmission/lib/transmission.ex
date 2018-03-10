@@ -10,10 +10,18 @@ defmodule Transmission do
   """
 
   defmodule Request do
+    @moduledoc """
+    Provides a data structure for Transmission api requests
+    """
+
     defstruct [:method, arguments: []]
   end
 
   defmodule Response do
+    @moduledoc """
+    Provides a data structure for Transmission api responses
+    """
+
     defstruct [:result, :arguments]
   end
 
