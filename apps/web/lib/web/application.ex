@@ -1,4 +1,8 @@
 defmodule Web.Application do
+  @moduledoc """
+  Phoenix applications functions
+  """
+
   use Application
 
   def start(_type, _args) do

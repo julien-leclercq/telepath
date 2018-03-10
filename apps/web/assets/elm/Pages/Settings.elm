@@ -94,7 +94,7 @@ update msg model =
 
 freshSeedbox : PendingSeedbox
 freshSeedbox =
-    Remote { url = "", port_ = "9091" }
+    Remote { url = "localhost", port_ = "9091" }
 
 
 portToString : Maybe Int -> String
@@ -112,3 +112,13 @@ pendingFromSeedbox seedbox =
     case seedbox of
         Types.Remote seedbox ->
             Remote { url = seedbox.url, port_ = portToString seedbox.port_ }
+
+
+pendingSeedbox : Model -> PendingSeedbox
+pendingSeedbox model =
+    case model.state of
+        AddSeedbox pendingSeedbox ->
+            pendingSeedbox
+
+        ConfigSeedbox ( _, pendingBox ) ->
+            pendingBox

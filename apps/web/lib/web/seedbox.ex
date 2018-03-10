@@ -1,11 +1,15 @@
 defmodule Web.Seedbox do
+  @moduledoc """
+  This module provide functions to access and treat seedbox informations
+  """
+
   def list do
     {:ok,
      [
        %{
          id: 1,
-         url: "",
-         port: nil,
+         url: "seedbox url",
+         port: 3454,
          remote: true
        }
      ]}
