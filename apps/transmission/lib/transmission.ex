@@ -176,5 +176,6 @@ defmodule Transmission do
   defp find_transmission_header(response) do
     response.headers
     |> Enum.find(fn {key, _} -> key == @session_id_key end)
+
   end
 end
