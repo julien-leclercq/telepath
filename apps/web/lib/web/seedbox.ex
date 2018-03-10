@@ -1,4 +1,8 @@
 defmodule Web.Seedbox do
+  @moduledoc """
+  This module provide functions to access and treat seedbox informations
+  """
+
   def list do
     {:ok,
      [
