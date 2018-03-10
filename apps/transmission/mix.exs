@@ -30,6 +30,6 @@ defmodule Transmission.Mixfile do
   #
   # Type "mix help deps" for more examples and options
   defp deps do
-    [{:httpoison, "~> 1.0"}]
+    [{:httpoison, "~> 1.0"}, {:kaur, "~> 1.1.0"}]
   end
 end
