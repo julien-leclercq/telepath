@@ -25,5 +25,7 @@ defmodule WebWeb.Router do
     pipe_through(:api)
 
     get("/seedboxes", Api.SeedboxController, :index)
+
+    get("/torrents", Api.TorrentController, :index)
   end
 end
