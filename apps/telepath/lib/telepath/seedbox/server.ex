@@ -1,4 +1,8 @@
 defmodule Telepath.Seedbox.Server do
+  @moduledoc """
+  This module provides a state holding feature per seedbox
+  """
+
   alias Telepath.Seedbox
   use GenServer
 
