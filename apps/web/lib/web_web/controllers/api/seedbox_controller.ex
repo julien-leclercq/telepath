@@ -1,17 +1,19 @@
 defmodule WebWeb.Api.SeedboxController do
+  alias Kaur.Result
   use WebWeb, :controller
 
   def index(conn, _params) do
-    case Web.Seedbox.list() do
-      {:ok, seedboxes} -> json(conn, %{seedboxes: seedboxes})
-      {:error, reason} -> json(conn, %{error: reason})
-    end
+    Web.Seedbox.list()
+    |> Result.either(fn reason -> json(conn, %{error: reason}) end, fn seedboxes ->
+      json(conn, %{seedboxes: seedboxes})
+    end)
   end
 
   def create(conn, %{"seedbox" => seedbox_params} = _params) do
-    case Web.Seedbox.create(seedbox_params) do
-      {:ok, seedbox} -> json(conn, %{seedbox: seedbox})
-      {:error, reason} -> json(conn, %{error: reason})
-    end
+    seedbox_params
+    |> Web.Seedbox.create()
+    |> Result.either(fn reason -> json(conn, %{error: reason}) end, fn seedbox ->
+      json(conn, %{seedbox: seedbox})
+    end)
   end
 end

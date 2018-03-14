@@ -21,7 +21,7 @@ defmodule Telepath.Seedbox do
     |> Result.and_then(fn box ->
       box
       |> Repository.create()
-      |> Result.and_then(fn _ -> {:ok, box} end)
+      |> Result.map(fn _ -> box end)
     end)
   end
 end
