@@ -2,16 +2,18 @@ defmodule Telepath.Seedbox.Server do
   @moduledoc """
   This module provides a state holding feature per seedbox
   """
-
+  # alias Kaur.Result
   alias Telepath.Seedbox
+  require Logger
   use GenServer
 
-  def start_link(%Seedbox{} = seedbox, options \\ []) do
+  def start_link(seedbox, options \\ []) do
+    # Logger.info fn _ -> "Telepath.Seedbox.starting #{seedbox.id}" end
     GenServer.start_link(__MODULE__, seedbox, options)
   end
 
-  def update(pid, %Seedbox{} = seedbox) do
-    GenServer.call(pid, {:update, seedbox})
+  def init(%Seedbox{} = seedbox) do
+    {:ok, seedbox, :infinity}
   end
 
   def handle_call({:update, params}, _from, state) do
