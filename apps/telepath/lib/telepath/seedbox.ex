@@ -2,6 +2,9 @@ defmodule Telepath.Seedbox do
   @moduledoc """
   This module provides data structure and functions to manipulate seedboxes
   """
+  alias Kaur.Result
+  alias Telepath.Seedbox.{Impl, Repository}
+  require Logger
   use Ecto.Schema
 
   embedded_schema do
@@ -11,7 +14,14 @@ defmodule Telepath.Seedbox do
     field(:accessible, :boolean)
   end
 
-  def update(seedbox, params) do
-    {:ok, Map.merge(seedbox, params)}
+  def create(seedbox_params) do
+    seedbox_params
+    |> Impl.create()
+    |> Result.tap_error(fn _ -> Logger.error("SEEDBOX:CREATE invalid data") end)
+    |> Result.and_then(fn box ->
+      box
+      |> Repository.create()
+      |> Result.and_then(fn _ -> {:ok, box} end)
+    end)
   end
 end
