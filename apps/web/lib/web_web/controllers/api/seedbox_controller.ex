@@ -7,4 +7,11 @@ defmodule WebWeb.Api.SeedboxController do
       {:error, reason} -> json(conn, %{error: reason})
     end
   end
+
+  def create(conn, %{"seedbox" => seedbox_params} = _params) do
+    case Web.Seedbox.create(seedbox_params) do
+      {:ok, seedbox} -> json(conn, %{seedbox: seedbox})
+      {:error, reason} -> json(conn, %{error: reason})
+    end
+  end
 end

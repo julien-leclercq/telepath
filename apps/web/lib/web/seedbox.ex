@@ -14,4 +14,8 @@ defmodule Web.Seedbox do
        }
      ]}
   end
+
+  def create(params) do
+    Telepath.Seedbox.create(params)
+  end
 end
