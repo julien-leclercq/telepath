@@ -24,8 +24,10 @@ defmodule WebWeb.Router do
   scope "/api", WebWeb do
     pipe_through(:api)
 
-    get("/seedboxes", Api.SeedboxController, :index)
-    post("/seedboxes", Api.SeedboxController, :create)
+    scope "/seedboxes" do
+      get("/", Api.SeedboxController, :index)
+      post("/", Api.SeedboxController, :create)
+    end
 
     get("/torrents", Api.TorrentController, :index)
   end
