@@ -15,11 +15,4 @@ defmodule Telepath.Seedbox.Server do
   def init(%Seedbox{} = seedbox) do
     {:ok, seedbox, :infinity}
   end
-
-  def handle_call({:update, params}, _from, state) do
-    case Seedbox.update(state, params) do
-      {:ok, new_state} -> {:reply, :ok, new_state}
-      {:error, reason} -> {:reply, {:error, reason}, state}
-    end
-  end
 end
