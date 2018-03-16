@@ -3,7 +3,17 @@ module Data.Seedbox exposing (..)
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (andThen, bool, int, fail, field, list, nullable, string)
 import Json.Decode.Pipeline exposing (decode, required)
-import Types exposing (..)
+
+
+type Seedbox
+    = Remote RemoteSeedbox
+
+
+type alias RemoteSeedbox =
+    { id : String
+    , port_ : String
+    , url : String
+    }
 
 
 seedboxListDecoder : Decode.Decoder (List Seedbox)
@@ -26,9 +36,9 @@ seedboxDecoder =
 remoteSeedboxDecoder : Decode.Decoder RemoteSeedbox
 remoteSeedboxDecoder =
     decode RemoteSeedbox
-        |> required "id" int
+        |> required "id" string
+        |> required "port" string
         |> required "url" string
-        |> required "port" (nullable int)
 
 
 seedboxEncoder : Seedbox -> Encode.Value
@@ -40,24 +50,17 @@ seedboxEncoder seedbox =
 
 remoteSeedboxEncoder : RemoteSeedbox -> Encode.Value
 remoteSeedboxEncoder seedbox =
-    let
-        encodedPort =
-            case seedbox.port_ of
-                Just p ->
-                    Encode.int p
-
-                Nothing ->
-                    Encode.null
-    in
-        Encode.object
-            [ ( "url", Encode.string seedbox.url ), ( "port", encodedPort ) ]
+    Encode.object
+        [ ( "url", Encode.string seedbox.url ), ( "port", Encode.string seedbox.port_ ) ]
 
 
+url : Seedbox -> String
 url seedbox =
     case seedbox of
         Remote seedbox ->
             seedbox.url
 
 
+id : Seedbox -> String
 id (Remote seedbox) =
     seedbox.id

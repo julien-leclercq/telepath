@@ -1,17 +1,17 @@
 module Views.Settings exposing (..)
 
-import Html exposing (Html, a, br, div, input, label, li, p, text, ul)
+import Html exposing (Html, a, br, div, form, input, label, li, p, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Pages.Settings as Page
-import Data.Seedbox as Box
+import Data.Seedbox as Box exposing (Seedbox(Remote))
 
 
 view : Page.Model -> Html Page.Msg
 view model =
     div [ Attrs.class "container" ]
         [ tabs model
-        , form model
+        , settingsForm model
         ]
 
 
@@ -77,24 +77,40 @@ tabs model =
         ]
 
 
-form : Page.Model -> Html Page.Msg
-form model =
+settingsForm : Page.Model -> Html Page.Msg
+settingsForm model =
     let
-        formBody (Page.Remote box) =
-            [ div [ Attrs.class "field" ]
-                [ label [ Attrs.class "label" ] [ text "Url" ]
-                , div [ Attrs.class "control" ]
-                    [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.url ] []
+        formBody (Remote box) =
+            let
+                urlField =
+                    let
+                        help =
+                            case model.errors.url of
+                                Nothing ->
+                                    [ text "the url of your box.", br [] [], text "If your box is on the same server as your telepath, just put localhost in here" ]
+
+                                Just error ->
+                                    [ text error ]
+                    in
+                        div [ Attrs.class "field" ]
+                            [ label [ Attrs.class "label" ] [ text "Url" ]
+                            , div [ Attrs.class "control" ]
+                                [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.url ] []
+                                ]
+                            , p [ Attrs.class "help" ] help
+                            ]
+            in
+                [ form [ Events.onSubmit <| Page.Push, Attrs.action "javascript:void(0);" ]
+                    [ urlField
+                    , div [ Attrs.class "field" ]
+                        [ label [ Attrs.class "label" ] [ text "Port" ]
+                        , div [ Attrs.class "control" ]
+                            [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "9091", Attrs.value box.port_ ] []
+                            ]
+                        ]
+                    , div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
                     ]
-                , p [ Attrs.class "help" ] [ text "the url of your box.", br [] [], text "If your box is on the same server as your telepath, just put localhost in here" ]
                 ]
-            , div [ Attrs.class "field" ]
-                [ label [ Attrs.class "label" ] [ text "Port" ]
-                , div [ Attrs.class "control" ]
-                    [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "9091", Attrs.value box.port_ ] []
-                    ]
-                ]
-            ]
     in
         model
             |> Page.pendingSeedbox

@@ -1,13 +1,17 @@
 module Pages.Settings exposing (..)
 
+import Data.Seedbox as Data exposing (Seedbox)
 import Http exposing (Request)
+import Json.Decode exposing (decodeString, field, maybe, string, Decoder)
+import Json.Decode.Pipeline as Decode
 import Request.Seedbox
-import Types exposing (..)
 
 
 type alias Model =
     { seedboxes : List Seedbox
     , state : State
+    , loading : Bool
+    , errors : Errors
     }
 
 
@@ -17,10 +21,7 @@ type State
 
 
 type PendingSeedbox
-    = Remote
-        { url : String
-        , port_ : String
-        }
+    = Pending Seedbox
 
 
 type RemoteField
@@ -32,6 +33,8 @@ type Msg
     = GoToConfig Seedbox
     | FreshSeedbox
     | Input RemoteField
+    | CreateStatus (Result Http.Error Seedbox)
+    | UpdateStatus (Result Http.Error Seedbox)
     | Push
 
 
@@ -47,15 +50,15 @@ init =
                 (\seedboxes ->
                     case seedboxes of
                         seedbox :: _ ->
-                            { seedboxes = seedboxes, state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox ) }
+                            { seedboxes = seedboxes, state = ConfigSeedbox ( seedbox, Pending seedbox ), loading = False, errors = errors }
 
                         _ ->
-                            { seedboxes = [], state = AddSeedbox freshSeedbox }
+                            { seedboxes = [], state = AddSeedbox freshSeedbox, loading = False, errors = errors }
                 )
             )
 
 
-update : Msg -> Model -> ( ( Model, Cmd msg ), ExternalMsg )
+update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
     case msg of
         FreshSeedbox ->
@@ -78,23 +81,56 @@ update msg model =
                             if seedbox == currentSeedbox then
                                 model
                             else
-                                { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox ) }
+                                { model | state = ConfigSeedbox ( seedbox, Pending seedbox ) }
                     in
                         ( ( newModel, Cmd.none ), NoOp )
 
                 _ ->
-                    ( ( { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox ) }, Cmd.none ), NoOp )
+                    ( ( { model | state = ConfigSeedbox ( seedbox, Pending seedbox ) }, Cmd.none ), NoOp )
 
         Input _ ->
             ( ( model, Cmd.none ), NoOp )
 
         Push ->
+            ( ( { model | loading = True }, pushSeedbox model.state ), NoOp )
+
+        CreateStatus result ->
+            case result of
+                Ok seedbox ->
+                    ( ( { model
+                            | seedboxes = seedbox :: model.seedboxes
+                            , loading = False
+                            , state = ConfigSeedbox ( seedbox, Pending seedbox )
+                            , errors = errors
+                        }
+                      , Cmd.none
+                      )
+                    , NoOp
+                    )
+
+                Err error ->
+                    let
+                        errorMessages =
+                            case error of
+                                Http.BadStatus response ->
+                                    response.body
+                                        |> decodeString (field "errors" errorsDecoder)
+                                        |> Result.withDefault { errors | global = Just "unable to decode data" }
+
+                                _ ->
+                                    { errors | global = Just "unable to create seedbox" }
+                    in
+                        ( ( { model | loading = False, errors = errorMessages }, Cmd.none ), NoOp )
+
+        _ ->
             ( ( model, Cmd.none ), NoOp )
 
 
 freshSeedbox : PendingSeedbox
 freshSeedbox =
-    Remote { url = "localhost", port_ = "9091" }
+    { id = "", port_ = "", url = "" }
+        |> Data.Remote
+        |> Pending
 
 
 portToString : Maybe Int -> String
@@ -107,18 +143,46 @@ portToString port_ =
             toString p
 
 
-pendingFromSeedbox : Seedbox -> PendingSeedbox
-pendingFromSeedbox seedbox =
-    case seedbox of
-        Types.Remote seedbox ->
-            Remote { url = seedbox.url, port_ = portToString seedbox.port_ }
-
-
-pendingSeedbox : Model -> PendingSeedbox
+pendingSeedbox : Model -> Seedbox
 pendingSeedbox model =
     case model.state of
-        AddSeedbox pendingSeedbox ->
+        AddSeedbox (Pending pendingSeedbox) ->
             pendingSeedbox
 
-        ConfigSeedbox ( _, pendingBox ) ->
+        ConfigSeedbox ( _, Pending pendingBox ) ->
             pendingBox
+
+
+pushSeedbox : State -> Cmd Msg
+pushSeedbox state =
+    case state of
+        AddSeedbox (Pending pendingSeedbox) ->
+            Request.Seedbox.create (pendingSeedbox)
+                |> Http.send identity
+                |> Cmd.map CreateStatus
+
+        _ ->
+            Cmd.none
+
+
+type alias Errors =
+    { url : Maybe String
+    , port_ : Maybe String
+    , global : Maybe String
+    }
+
+
+errors : Errors
+errors =
+    { url = Nothing
+    , port_ = Nothing
+    , global = Nothing
+    }
+
+
+errorsDecoder : Decoder Errors
+errorsDecoder =
+    Decode.decode Errors
+        |> Decode.optional "host" (maybe string) Nothing
+        |> Decode.optional "port" (maybe string) Nothing
+        |> Decode.optional "global" (maybe string) Nothing
