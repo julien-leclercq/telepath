@@ -6,12 +6,12 @@ defmodule Web.Seedbox do
   def list do
     {:ok,
      [
-      #  %{
-      #    id: 1,
-      #    url: "seedbox url",
-      #    port: 3454,
-      #    remote: true
-      #  }
+       #  %{
+       #    id: 1,
+       #    url: "seedbox url",
+       #    port: 3454,
+       #    remote: true
+       #  }
      ]}
   end
 
