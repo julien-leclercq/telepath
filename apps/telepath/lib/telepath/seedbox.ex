@@ -31,6 +31,7 @@ defmodule Telepath.Seedbox do
     pid
     |> GenServer.call(:state, :infinity)
   end
+
   def get(id) when is_binary(id) do
     Repository.find(id)
     |> Result.and_then(fn {pid, _} -> get(pid) end)
@@ -44,7 +45,6 @@ defmodule Telepath.Seedbox do
     Supervisor.which_children(Seedbox.Supervisor)
     |> Enum.map(async_get)
     |> Enum.map(&Task.await/1)
-    |> Result.sequence
+    |> Result.sequence()
   end
-
 end
