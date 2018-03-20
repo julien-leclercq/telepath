@@ -16,8 +16,17 @@ defmodule Telepath.Seedbox.Impl do
     |> put_session
     |> put_change(:id, Ecto.UUID.generate())
     |> case do
-      %{valid?: true} = changeset -> Result.ok(apply_changes(changeset))
-      changeset -> Result.error(changeset.errors)
+      %{valid?: true} = changeset ->
+        Result.ok(apply_changes(changeset))
+
+      changeset ->
+        changeset
+        |> traverse_errors(fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
+        end)
+        |> Result.error()
     end
   end
 
