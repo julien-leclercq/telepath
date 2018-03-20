@@ -2,7 +2,7 @@ defmodule Telepath.Seedbox.Server do
   @moduledoc """
   This module provides a state holding feature per seedbox
   """
-  # alias Kaur.Result
+  alias Kaur.Result
   alias Telepath.Seedbox
   require Logger
   use GenServer
@@ -14,5 +14,9 @@ defmodule Telepath.Seedbox.Server do
 
   def init(%Seedbox{} = seedbox) do
     {:ok, seedbox, :infinity}
+  end
+
+  def handle_call(:state, _from, state) do
+    {:reply, Result.ok(state), state}
   end
 end

@@ -3,6 +3,7 @@ defmodule Telepath.Seedbox do
   This module provides data structure and functions to manipulate seedboxes
   """
   alias Kaur.Result
+  alias Telepath.Seedbox
   alias Telepath.Seedbox.{Impl, Repository}
   require Logger
   use Ecto.Schema
@@ -25,4 +26,25 @@ defmodule Telepath.Seedbox do
       |> Result.map(fn _ -> box end)
     end)
   end
+
+  def get(pid) when is_pid(pid) do
+    pid
+    |> GenServer.call(:state, :infinity)
+  end
+  def get(id) when is_binary(id) do
+    Repository.find(id)
+    |> Result.and_then(fn {pid, _} -> get(pid) end)
+  end
+
+  def list() do
+    async_get = fn {_, pid, _, _} ->
+      Task.async(fn -> get(pid) end)
+    end
+
+    Supervisor.which_children(Seedbox.Supervisor)
+    |> Enum.map(async_get)
+    |> Enum.map(&Task.await/1)
+    |> Result.sequence
+  end
+
 end

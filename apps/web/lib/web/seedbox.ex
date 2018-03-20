@@ -4,15 +4,7 @@ defmodule Web.Seedbox do
   """
 
   def list do
-    {:ok,
-     [
-       #  %{
-       #    id: 1,
-       #    url: "seedbox url",
-       #    port: 3454,
-       #    remote: true
-       #  }
-     ]}
+    Telepath.Seedbox.list()
   end
 
   def create(params) do
