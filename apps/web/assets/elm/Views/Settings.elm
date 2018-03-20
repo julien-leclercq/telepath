@@ -11,6 +11,7 @@ view : Page.Model -> Html Page.Msg
 view model =
     div [ Attrs.class "container" ]
         [ tabs model
+        , errorDiv model
         , settingsForm model
         ]
 
@@ -93,9 +94,9 @@ settingsForm model =
                                     [ text error ]
                     in
                         div [ Attrs.class "field" ]
-                            [ label [ Attrs.class "label" ] [ text "Url" ]
+                            [ label [ Attrs.class "label" ] [ text "Host" ]
                             , div [ Attrs.class "control" ]
-                                [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.url ] []
+                                [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.host, Events.onInput (Page.input Page.Host) ] []
                                 ]
                             , p [ Attrs.class "help" ] help
                             ]
@@ -105,7 +106,7 @@ settingsForm model =
                     , div [ Attrs.class "field" ]
                         [ label [ Attrs.class "label" ] [ text "Port" ]
                         , div [ Attrs.class "control" ]
-                            [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "9091", Attrs.value box.port_ ] []
+                            [ input [ Attrs.class "input", Attrs.type_ "text", Attrs.placeholder "9091", Attrs.value box.port_, Events.onInput (Page.input Page.Port) ] []
                             ]
                         ]
                     , div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
@@ -116,3 +117,13 @@ settingsForm model =
             |> Page.pendingSeedbox
             |> formBody
             |> div [ Attrs.class "form" ]
+
+
+errorDiv : Page.Model -> Html msg
+errorDiv model =
+    case model.errors.global of
+        Nothing ->
+            div [ Attrs.class "level" ] []
+
+        Just error ->
+            div [ Attrs.class "notification is-danger" ] [ text error ]

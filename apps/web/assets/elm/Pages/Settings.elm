@@ -1,9 +1,11 @@
 module Pages.Settings exposing (..)
 
-import Data.Seedbox as Data exposing (Seedbox)
-import Http exposing (Request)
+import Data.Seedbox as Data exposing (Seedbox, updateHost, updatePort)
+import Debug
+import Http exposing (Request, Response)
 import Json.Decode exposing (decodeString, field, maybe, string, Decoder)
 import Json.Decode.Pipeline as Decode
+import Request
 import Request.Seedbox
 
 
@@ -25,7 +27,7 @@ type PendingSeedbox
 
 
 type RemoteField
-    = Url String
+    = Host String
     | Port String
 
 
@@ -88,8 +90,8 @@ update msg model =
                 _ ->
                     ( ( { model | state = ConfigSeedbox ( seedbox, Pending seedbox ) }, Cmd.none ), NoOp )
 
-        Input _ ->
-            ( ( model, Cmd.none ), NoOp )
+        Input field ->
+            ( ( { model | state = applyInput model.state field }, Cmd.none ), NoOp )
 
         Push ->
             ( ( { model | loading = True }, pushSeedbox model.state ), NoOp )
@@ -97,16 +99,18 @@ update msg model =
         CreateStatus result ->
             case result of
                 Ok seedbox ->
-                    ( ( { model
-                            | seedboxes = seedbox :: model.seedboxes
-                            , loading = False
-                            , state = ConfigSeedbox ( seedbox, Pending seedbox )
-                            , errors = errors
-                        }
-                      , Cmd.none
-                      )
-                    , NoOp
-                    )
+                    Debug.log "seedbox created"
+                        identity
+                        ( ( { model
+                                | seedboxes = seedbox :: model.seedboxes
+                                , loading = False
+                                , state = ConfigSeedbox ( seedbox, Pending seedbox )
+                                , errors = errors
+                            }
+                          , Cmd.none
+                          )
+                        , NoOp
+                        )
 
                 Err error ->
                     let
@@ -117,18 +121,57 @@ update msg model =
                                         |> decodeString (field "errors" errorsDecoder)
                                         |> Result.withDefault { errors | global = Just "unable to decode data" }
 
-                                _ ->
-                                    { errors | global = Just "unable to create seedbox" }
+                                Http.NetworkError ->
+                                    { errors | global = Just "there seems to be a problem" }
+
+                                Http.BadPayload httpError _ ->
+                                    Debug.log "error bad payload" { errors | global = Just httpError }
+
+                                Http.BadUrl url ->
+                                    { errors | global = Just (url ++ " is not a valid url") }
+
+                                Http.Timeout ->
+                                    { errors | global = Just "request has timeout" }
                     in
-                        ( ( { model | loading = False, errors = errorMessages }, Cmd.none ), NoOp )
+                        Debug.log "Seedbox not created"
+                            ( ( { model | loading = False, errors = errorMessages }, Cmd.none ), NoOp )
 
         _ ->
             ( ( model, Cmd.none ), NoOp )
 
 
+input : (String -> RemoteField) -> String -> Msg
+input field value =
+    Input (field value)
+
+
+applyInput : State -> RemoteField -> State
+applyInput state field =
+    let
+        updateBox box =
+            case field of
+                Host host ->
+                    updateHost host box
+
+                Port port_ ->
+                    updatePort port_ box
+    in
+        case state of
+            AddSeedbox (Pending box) ->
+                AddSeedbox <| Pending <| updateBox box
+
+            ConfigSeedbox ( box, Pending modifs ) ->
+                ConfigSeedbox ( box, Pending <| updateBox modifs )
+
+
 freshSeedbox : PendingSeedbox
 freshSeedbox =
-    { id = "", port_ = "", url = "" }
+    { accessible = False
+    , id = ""
+    , name = ""
+    , port_ = ""
+    , host = ""
+    }
         |> Data.Remote
         |> Pending
 
@@ -182,7 +225,11 @@ errors =
 
 errorsDecoder : Decoder Errors
 errorsDecoder =
-    Decode.decode Errors
-        |> Decode.optional "host" (maybe string) Nothing
-        |> Decode.optional "port" (maybe string) Nothing
-        |> Decode.optional "global" (maybe string) Nothing
+    let
+        genericDecoder =
+            Json.Decode.map (\global -> { errors | global = global }) Request.errorDecoder
+    in
+        Decode.decode Errors
+            |> Decode.optional "host" (maybe string) Nothing
+            |> Decode.optional "port" (maybe string) Nothing
+            |> Decode.optional "global" (maybe string) Nothing
