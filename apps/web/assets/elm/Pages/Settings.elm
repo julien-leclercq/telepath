@@ -24,7 +24,8 @@ type State
 
 
 type alias PendingSeedbox =
-    { host : String
+    { auth : Data.Auth
+    , host : String
     , name : String
     , port_ : String
     }
@@ -61,7 +62,7 @@ init =
 
 pendingFromSeedbox : Seedbox -> PendingSeedbox
 pendingFromSeedbox seedbox =
-    PendingSeedbox seedbox.host seedbox.name (toString seedbox.port_)
+    PendingSeedbox Data.NoAuth seedbox.host seedbox.name (toString seedbox.port_)
 
 
 pendingSeedbox : Model -> PendingSeedbox
@@ -152,7 +153,11 @@ applyInput state field =
 
 freshSeedbox : PendingSeedbox
 freshSeedbox =
-    { name = "", host = "", port_ = "" }
+    { auth = Data.NoAuth
+    , name = ""
+    , port_ = ""
+    , host = ""
+    }
 
 
 verifySeedbox : PendingSeedbox -> Result Errors ( String, String, Int )
