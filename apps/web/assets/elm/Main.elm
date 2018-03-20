@@ -60,18 +60,15 @@ renderApp pageModel pageView msgMapper =
 
 mainView : Model -> Html Message
 mainView model =
-    case model.pageState of
-        Loaded (TorrentListPage torrentsModel) ->
+    case getPage model.pageState of
+        TorrentListPage torrentsModel ->
             renderApp torrentsModel TorrentList.view TorrentsMsg
 
-        Loaded (SettingsPage settingsModel) ->
+        SettingsPage settingsModel ->
             renderApp settingsModel Settings.view SettingsMsg
 
-        Loaded (ErrorPage maybeErrorText) ->
+        ErrorPage maybeErrorText ->
             renderApp maybeErrorText errorDiv identity
-
-        _ ->
-            errorDiv Nothing
 
 
 
