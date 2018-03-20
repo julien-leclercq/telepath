@@ -10,9 +10,11 @@ type Seedbox
 
 
 type alias RemoteSeedbox =
-    { id : String
+    { accessible : Bool
+    , host : String
+    , id : String
+    , name : String
     , port_ : String
-    , url : String
     }
 
 
@@ -36,31 +38,47 @@ seedboxDecoder =
 remoteSeedboxDecoder : Decode.Decoder RemoteSeedbox
 remoteSeedboxDecoder =
     decode RemoteSeedbox
+        |> required "accessible" bool
+        |> required "host" string
         |> required "id" string
+        |> required "name" string
         |> required "port" string
-        |> required "url" string
 
 
 seedboxEncoder : Seedbox -> Encode.Value
 seedboxEncoder seedbox =
-    case seedbox of
-        Remote seedbox ->
-            remoteSeedboxEncoder seedbox
+    let
+        encodedSeedbox =
+            case seedbox of
+                Remote seedbox ->
+                    remoteSeedboxEncoder seedbox
+    in
+        Encode.object [ ( "seedbox", encodedSeedbox ) ]
 
 
 remoteSeedboxEncoder : RemoteSeedbox -> Encode.Value
 remoteSeedboxEncoder seedbox =
     Encode.object
-        [ ( "url", Encode.string seedbox.url ), ( "port", Encode.string seedbox.port_ ) ]
+        [ ( "host", Encode.string seedbox.host ), ( "port", Encode.string seedbox.port_ ) ]
 
 
 url : Seedbox -> String
 url seedbox =
     case seedbox of
         Remote seedbox ->
-            seedbox.url
+            seedbox.host
 
 
 id : Seedbox -> String
 id (Remote seedbox) =
     seedbox.id
+
+
+updateHost : String -> Seedbox -> Seedbox
+updateHost host (Remote seedbox) =
+    Remote { seedbox | host = host }
+
+
+updatePort : String -> Seedbox -> Seedbox
+updatePort port_ (Remote seedbox) =
+    Remote { seedbox | port_ = port_ }
