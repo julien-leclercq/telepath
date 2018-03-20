@@ -2,7 +2,7 @@ module Data.Seedbox exposing (..)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (andThen, bool, int, fail, field, list, nullable, string)
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode.Pipeline exposing (decode, hardcoded, required)
 
 
 type Seedbox
@@ -11,11 +11,25 @@ type Seedbox
 
 type alias RemoteSeedbox =
     { accessible : Bool
+    , auth : Auth
     , host : String
     , id : String
     , name : String
     , port_ : String
     }
+
+
+type alias UserName =
+    String
+
+
+type alias Password =
+    String
+
+
+type Auth
+    = NoAuth
+    | BasicAuth ( UserName, Password )
 
 
 seedboxListDecoder : Decode.Decoder (List Seedbox)
@@ -39,6 +53,7 @@ remoteSeedboxDecoder : Decode.Decoder RemoteSeedbox
 remoteSeedboxDecoder =
     decode RemoteSeedbox
         |> required "accessible" bool
+        |> hardcoded NoAuth
         |> required "host" string
         |> required "id" string
         |> required "name" string
@@ -82,3 +97,8 @@ updateHost host (Remote seedbox) =
 updatePort : String -> Seedbox -> Seedbox
 updatePort port_ (Remote seedbox) =
     Remote { seedbox | port_ = port_ }
+
+
+isAccessible : Seedbox -> Bool
+isAccessible (Remote box) =
+    box.accessible

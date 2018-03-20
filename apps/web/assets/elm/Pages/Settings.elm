@@ -167,6 +167,7 @@ applyInput state field =
 freshSeedbox : PendingSeedbox
 freshSeedbox =
     { accessible = False
+    , auth = Data.NoAuth
     , id = ""
     , name = ""
     , port_ = ""
