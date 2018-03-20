@@ -12,6 +12,7 @@ view model =
     div [ Attrs.class "container" ]
         [ tabs model
         , errorDiv model
+        , warningDiv model
         , settingsForm model
         ]
 
@@ -119,7 +120,7 @@ settingsForm model =
             |> div [ Attrs.class "form" ]
 
 
-errorDiv : Page.Model -> Html msg
+errorDiv : Page.Model -> Html Page.Msg
 errorDiv model =
     case model.errors.global of
         Nothing ->
@@ -127,3 +128,20 @@ errorDiv model =
 
         Just error ->
             div [ Attrs.class "notification is-danger" ] [ text error ]
+
+
+warningDiv : Page.Model -> Html Page.Msg
+warningDiv model =
+    case model.state of
+        Page.ConfigSeedbox _ ->
+            let
+                accessible =
+                    (Page.pendingSeedbox model) |> Box.isAccessible
+            in
+                if accessible then
+                    div [] []
+                else
+                    div [ Attrs.class "notification is-warning" ] [ text "the seedbox is not accessible you should maybe add basic auth settings" ]
+
+        _ ->
+            div [] []
