@@ -11,7 +11,7 @@ defmodule Telepath.Seedbox do
     field(:accessible, :boolean, default: false)
     field(:host, :string)
     field(:name, :string, default: "")
-    field(:port, :string)
+    field(:port, :integer)
     field(:remote, :boolean, default: true)
   end
 
