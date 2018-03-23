@@ -1,29 +1,41 @@
 module Pages.Settings exposing (..)
 
-import Data.Seedbox as Data exposing (Seedbox, updateHost, updatePort)
+import Data.Seedbox as Data exposing (Seedbox, updateHost)
 import Debug
-import Http exposing (Request, Response)
-import Json.Decode exposing (decodeString, field, maybe, string, Decoder)
+import Http
+import Json.Decode exposing (decodeString, field, list, string, Decoder)
 import Json.Decode.Pipeline as Decode
+import Platform.Cmd
+import RemoteData exposing (RemoteData, WebData)
 import Request
 import Request.Seedbox
 
 
 type alias Model =
-    { seedboxes : List Seedbox
+    { seedboxes : WebData (List Seedbox)
     , state : State
-    , loading : Bool
     , errors : Errors
     }
 
 
 type State
-    = AddSeedbox PendingSeedbox
-    | ConfigSeedbox ( Seedbox, PendingSeedbox )
+    = AddSeedbox ( PendingSeedbox, RemoteData Errors Seedbox )
+    | ConfigSeedbox ( Seedbox, PendingSeedbox, WebData Seedbox )
 
 
-type PendingSeedbox
-    = Pending Seedbox
+type alias PendingSeedbox =
+    { host : String
+    , name : String
+    , port_ : String
+    }
+
+
+type alias Errors =
+    { global : List String
+    , host : List String
+    , name : List String
+    , port_ : List String
+    }
 
 
 type RemoteField
@@ -31,113 +43,87 @@ type RemoteField
     | Port String
 
 
-type Msg
-    = GoToConfig Seedbox
-    | FreshSeedbox
-    | Input RemoteField
-    | CreateStatus (Result Http.Error Seedbox)
-    | UpdateStatus (Result Http.Error Seedbox)
-    | Push
-
-
 type ExternalMsg
     = NoOp
 
 
-init : Cmd (Result Http.Error Model)
+init : ( Model, Cmd Msg )
 init =
-    Request.Seedbox.list
-        |> Http.send
-            (Result.map
-                (\seedboxes ->
-                    case seedboxes of
-                        seedbox :: _ ->
-                            { seedboxes = seedboxes, state = ConfigSeedbox ( seedbox, Pending seedbox ), loading = False, errors = errors }
+    ( { seedboxes = RemoteData.Loading
+      , state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked )
+      , errors = errors
+      }
+    , Request.Seedbox.list
+        |> RemoteData.sendRequest
+        |> Cmd.map SeedboxListResponse
+    )
 
-                        _ ->
-                            { seedboxes = [], state = AddSeedbox freshSeedbox, loading = False, errors = errors }
-                )
-            )
+
+pendingFromSeedbox : Seedbox -> PendingSeedbox
+pendingFromSeedbox seedbox =
+    PendingSeedbox seedbox.host seedbox.name (toString seedbox.port_)
+
+
+pendingSeedbox : Model -> PendingSeedbox
+pendingSeedbox model =
+    case model.state of
+        AddSeedbox ( pendingSeedbox, _ ) ->
+            pendingSeedbox
+
+        ConfigSeedbox ( _, pendingBox, _ ) ->
+            pendingBox
+
+
+
+-- UPDATE --
+
+
+type Msg
+    = GoToConfig Seedbox
+    | FreshSeedbox
+    | Input RemoteField
+    | CreateStatus (RemoteData Errors Seedbox)
+    | UpdateStatus (WebData Seedbox)
+    | Push
+    | SeedboxListResponse (WebData (List Seedbox))
 
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
     case msg of
         FreshSeedbox ->
-            case model.state of
-                AddSeedbox _ ->
-                    ( ( model, Cmd.none ), NoOp )
-
-                _ ->
-                    let
-                        newModel =
-                            { model | state = AddSeedbox freshSeedbox }
-                    in
-                        ( ( newModel, Cmd.none ), NoOp )
+            ( ( { model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
         GoToConfig seedbox ->
-            case model.state of
-                ConfigSeedbox ( currentSeedbox, _ ) ->
-                    let
-                        newModel =
-                            if seedbox == currentSeedbox then
-                                model
-                            else
-                                { model | state = ConfigSeedbox ( seedbox, Pending seedbox ) }
-                    in
-                        ( ( newModel, Cmd.none ), NoOp )
-
-                _ ->
-                    ( ( { model | state = ConfigSeedbox ( seedbox, Pending seedbox ) }, Cmd.none ), NoOp )
+            goToConfig seedbox model
 
         Input field ->
             ( ( { model | state = applyInput model.state field }, Cmd.none ), NoOp )
 
         Push ->
-            ( ( { model | loading = True }, pushSeedbox model.state ), NoOp )
+            ( pushSeedbox model, NoOp )
 
-        CreateStatus result ->
-            case result of
-                Ok seedbox ->
-                    Debug.log "seedbox created"
-                        identity
-                        ( ( { model
-                                | seedboxes = seedbox :: model.seedboxes
-                                , loading = False
-                                , state = ConfigSeedbox ( seedbox, Pending seedbox )
-                                , errors = errors
-                            }
-                          , Cmd.none
-                          )
-                        , NoOp
-                        )
+        SeedboxListResponse webData ->
+            ( ( { model | seedboxes = webData }, Cmd.none ), NoOp )
 
-                Err error ->
-                    let
-                        errorMessages =
-                            case error of
-                                Http.BadStatus response ->
-                                    response.body
-                                        |> decodeString (field "errors" errorsDecoder)
-                                        |> Result.withDefault { errors | global = Just "unable to decode data" }
+        CreateStatus remoteData ->
+            ( handleCreateResponse remoteData model, NoOp )
 
-                                Http.NetworkError ->
-                                    { errors | global = Just "there seems to be a problem" }
+        UpdateStatus _ ->
+            ( ( { model | errors = { errors | global = [ "HANDLING UPDATE SEEDBOX RESPONSE NOT IMPLEMENTED YET" ] } }, Cmd.none ), NoOp )
 
-                                Http.BadPayload httpError _ ->
-                                    Debug.log "error bad payload" { errors | global = Just httpError }
 
-                                Http.BadUrl url ->
-                                    { errors | global = Just (url ++ " is not a valid url") }
-
-                                Http.Timeout ->
-                                    { errors | global = Just "request has timeout" }
-                    in
-                        Debug.log "Seedbox not created"
-                            ( ( { model | loading = False, errors = errorMessages }, Cmd.none ), NoOp )
+goToConfig : Seedbox -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
+goToConfig seedbox model =
+    case model.state of
+        ConfigSeedbox ( currentBox, _, _ ) ->
+            if currentBox == seedbox then
+                ( ( model, Cmd.none ), NoOp )
+            else
+                ( ( { model | state = ConfigSeedbox ( seedbox, freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
         _ ->
-            ( ( model, Cmd.none ), NoOp )
+            ( ( { model | state = ConfigSeedbox ( seedbox, freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
 
 input : (String -> RemoteField) -> String -> Msg
@@ -151,76 +137,112 @@ applyInput state field =
         updateBox box =
             case field of
                 Host host ->
-                    updateHost host box
+                    { box | host = host }
 
                 Port port_ ->
-                    updatePort port_ box
+                    { box | port_ = port_ }
     in
         case state of
-            AddSeedbox (Pending box) ->
-                AddSeedbox <| Pending <| updateBox box
+            AddSeedbox ( box, webData ) ->
+                AddSeedbox <| ( updateBox box, webData )
 
-            ConfigSeedbox ( box, Pending modifs ) ->
-                ConfigSeedbox ( box, Pending <| updateBox modifs )
+            ConfigSeedbox ( box, modifs, webData ) ->
+                ConfigSeedbox ( box, updateBox modifs, webData )
 
 
 freshSeedbox : PendingSeedbox
 freshSeedbox =
-    { accessible = False
-    , id = ""
-    , name = ""
-    , port_ = ""
-    , host = ""
-    }
-        |> Data.Remote
-        |> Pending
+    { name = "", host = "", port_ = "" }
 
 
-portToString : Maybe Int -> String
-portToString port_ =
-    case port_ of
-        Nothing ->
-            ""
+verifySeedbox : PendingSeedbox -> Result Errors ( String, String, Int )
+verifySeedbox pendingSeedbox =
+    String.toInt pendingSeedbox.port_
+        |> Result.map
+            (\port_ ->
+                ( pendingSeedbox.host, pendingSeedbox.name, port_ )
+            )
+        |> Result.mapError (\_ -> { errors | port_ = [ "Error parsing port to an int" ] })
 
-        Just p ->
-            toString p
 
-
-pendingSeedbox : Model -> Seedbox
-pendingSeedbox model =
+pushSeedbox : Model -> ( Model, Cmd Msg )
+pushSeedbox model =
     case model.state of
-        AddSeedbox (Pending pendingSeedbox) ->
+        AddSeedbox ( pendingSeedbox, _ ) ->
             pendingSeedbox
+                |> verifySeedbox
+                |> Debug.log "pushing seedbox from a AddSeedbox state"
+                |> (\verified ->
+                        case verified of
+                            Result.Ok toEncode ->
+                                Data.seedboxEncoder toEncode
+                                    |> Request.Seedbox.create
+                                    |> sendRequest
+                                    |> (\cmd -> ( { model | state = AddSeedbox ( pendingSeedbox, RemoteData.Loading ) }, Cmd.map CreateStatus cmd ))
 
-        ConfigSeedbox ( _, Pending pendingBox ) ->
-            pendingBox
-
-
-pushSeedbox : State -> Cmd Msg
-pushSeedbox state =
-    case state of
-        AddSeedbox (Pending pendingSeedbox) ->
-            Request.Seedbox.create (pendingSeedbox)
-                |> Http.send identity
-                |> Cmd.map CreateStatus
+                            Result.Err errors ->
+                                ( { model | errors = errors }, Cmd.none )
+                   )
 
         _ ->
-            Cmd.none
+            Debug.crash "updating seedbox not implemented"
 
 
-type alias Errors =
-    { url : Maybe String
-    , port_ : Maybe String
-    , global : Maybe String
-    }
+
+-- ( { model | errors = { errors | global = [ "UPDATE SEEDBOX NOT IMPLEMENTED" ] } }, Cmd.none )
+
+
+sendRequest : Http.Request a -> Cmd (RemoteData Errors a)
+sendRequest request =
+    request
+        |> RemoteData.sendRequest
+        |> Cmd.map (RemoteData.mapError handleHttpErrors)
 
 
 errors : Errors
 errors =
-    { url = Nothing
-    , port_ = Nothing
-    , global = Nothing
+    { global = []
+    , host = []
+    , name = []
+    , port_ = []
     }
+
+
+handleCreateResponse : RemoteData Errors Seedbox -> Model -> ( Model, Cmd Msg )
+handleCreateResponse remoteData model =
+    case remoteData of
+        RemoteData.Failure e ->
+            ( { model
+                | errors = e
+              }
+            , Cmd.none
+            )
+
+        RemoteData.Success box ->
+            ( { model | seedboxes = RemoteData.map ((::) box) model.seedboxes, state = ConfigSeedbox ( box, pendingFromSeedbox box, RemoteData.NotAsked ) }, Cmd.none )
+
+        _ ->
+            Debug.crash "Remote Data is in an unplanned state"
+
+
+handleHttpErrors : Http.Error -> Errors
+handleHttpErrors error =
+    case error of
+        Http.BadUrl _ ->
+            { errors | global = [ "An unplanned error has occured" ] }
+
+        Http.BadStatus { body } ->
+            decodeString errorsDecoder body
+                |> Result.withDefault ({ errors | global = [ "error decoding errors I have no more arguments" ] })
+
+        Http.Timeout ->
+            { errors | global = [ "network timeout" ] }
+
+        Http.NetworkError ->
+            { errors | global = [ "network unavailable" ] }
+
+        Http.BadPayload error _ ->
+            { errors | global = [ error ] }
 
 
 errorsDecoder : Decoder Errors
@@ -230,6 +252,7 @@ errorsDecoder =
             Json.Decode.map (\global -> { errors | global = global }) Request.errorDecoder
     in
         Decode.decode Errors
-            |> Decode.optional "host" (maybe string) Nothing
-            |> Decode.optional "port" (maybe string) Nothing
-            |> Decode.optional "global" (maybe string) Nothing
+            |> Decode.optional "host" (list string) []
+            |> Decode.optional "name" (list string) []
+            |> Decode.optional "port" (list string) []
+            |> Decode.optional "global" (list string) []

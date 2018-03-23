@@ -80,7 +80,7 @@ type Message
     | UrlChange Navigation.Location
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
-    | SettingsLoaded (Result Http.Error SettingsPage.Model)
+    | SettingsLoaded ( SettingsPage.Model, SettingsPage.Msg )
     | TorrentsLoaded (Result Http.Error TorrentsPage.Model)
 
 
@@ -107,11 +107,12 @@ updatePage page message model =
                     SettingsPage.NoOp ->
                         ( { model | pageState = Loaded <| SettingsPage newSubmodel }, Cmd.map SettingsMsg cmd )
 
-        ( SettingsLoaded (Ok settingsModel), _ ) ->
-            ( { model | pageState = Loaded <| SettingsPage settingsModel }, Cmd.none )
-
-        ( SettingsLoaded (Err error), _ ) ->
-            ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading settings page" }, Cmd.none )
+        ( SettingsLoaded ( settingsModel, settingsMessage ), _ ) ->
+            let
+                ( ( newSettingsModel, newSettingsMsg ), noOp ) =
+                    SettingsPage.update settingsMessage settingsModel
+            in
+                ( { model | pageState = Loaded <| SettingsPage newSettingsModel }, Cmd.map SettingsMsg newSettingsMsg )
 
         ( TorrentsLoaded (Ok torrentsList), _ ) ->
             ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
@@ -134,7 +135,11 @@ setRoute maybeRoute model =
         Just Routes.Settings ->
             let
                 msg =
-                    Cmd.map SettingsLoaded SettingsPage.init
+                    let
+                        ( model, cmd ) =
+                            SettingsPage.init
+                    in
+                        Cmd.map (\msg -> SettingsLoaded ( model, msg )) cmd
             in
                 ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 

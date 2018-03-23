@@ -1,6 +1,7 @@
 module Request.Seedbox exposing (..)
 
 import Data.Seedbox exposing (Seedbox, seedboxDecoder, seedboxListDecoder, seedboxEncoder)
+import Json.Encode as Json
 import Json.Decode as Decode
 import Http
 
@@ -22,10 +23,9 @@ list =
         |> Http.get endpoint
 
 
-create : Seedbox -> Http.Request Seedbox
-create seedbox =
-    (seedbox
-        |> seedboxEncoder
+create : Json.Value -> Http.Request Seedbox
+create seedboxJson =
+    (seedboxJson
         |> Http.jsonBody
         |> Http.post endpoint
     )
