@@ -14,6 +14,7 @@ view model =
             RemoteData.Success _ ->
                 [ tabs model
                 , errorDiv model
+                , warningDiv model
                 , settingsForm model
                 ]
 
@@ -113,7 +114,7 @@ settingsForm model =
             |> div [ Attrs.class "form" ]
 
 
-errorDiv : Page.Model -> Html msg
+errorDiv : Page.Model -> Html Page.Msg
 errorDiv model =
     let
         noError =
@@ -187,3 +188,20 @@ portField model =
                 ]
             , help
             ]
+
+
+warningDiv : Page.Model -> Html Page.Msg
+warningDiv model =
+    case model.state of
+        Page.ConfigSeedbox ( box, _, _ ) ->
+            let
+                accessible =
+                    box.accessible
+            in
+                if accessible then
+                    div [] []
+                else
+                    div [ Attrs.class "notification is-warning" ] [ text "the seedbox is not accessible you should maybe add basic auth settings" ]
+
+        _ ->
+            div [] []
