@@ -54,6 +54,7 @@ defmodule Transmission do
     seedbox
     |> build_url
     |> post(request, headers, options)
+    |> Result.and_then(&handle_response/1)
   end
 
   defp process_request_body(request) do
@@ -62,10 +63,12 @@ defmodule Transmission do
 
   defp process_request_options(options) do
     options = [follow_redirect: true] ++ options
+    proxy = Application.get_env(Transmission, :proxy)
 
-    case Application.get_env(Transmission, :proxy) do
-      nil -> options
-      proxy -> [hackney: [proxy: proxy]] ++ options
+    if proxy && String.length(proxy) > 0 do
+      [hackney: [proxy: proxy]] ++ options
+    else
+      options
     end
   end
 
