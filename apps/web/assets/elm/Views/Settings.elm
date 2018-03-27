@@ -187,7 +187,7 @@ portField model =
                     ( "input is-danger", p [ Attrs.class "help is-danger" ] (List.foldl (\error errors -> (text error) :: ((br [] []) :: errors)) [ text firstError ] otherErrors) )
     in
         div [ Attrs.class "field" ]
-            [ label [ Attrs.class "label" ] [ text "Host" ]
+            [ label [ Attrs.class "label" ] [ text "Port" ]
             , div [ Attrs.class "control" ]
                 [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.port_, Events.onInput (Page.input Page.Port) ] []
                 ]
@@ -222,9 +222,6 @@ authForm model =
                 ]
             ]
 
-        --   <input id="switchColorDefault" type="checkbox" name="switchColorDefault" class="switch" checked="checked">
-        --   <label for="switchColorDefault">Switch default</label>
-        -- </div>
         Seedbox.BasicAuth ( name, password ) ->
             [ div [ Attrs.class "field" ]
                 [ input [ Attrs.checked False, Attrs.class "switch", Attrs.id "auth-switch", Attrs.type_ "checkbox", Events.onCheck Page.ToggleAuth, Attrs.checked True ] []
@@ -233,5 +230,5 @@ authForm model =
             , div [ Attrs.class "field" ]
                 [ input [ Attrs.class "input", Attrs.placeholder "Name", Attrs.value name, Events.onInput (Page.input Page.AuthName) ] []
                 ]
-            , div [ Attrs.class "field" ] [ input [ Attrs.class "input", Attrs.placeholder "Password", Events.onInput (Page.input Page.AuthPassword) ] [] ]
+            , div [ Attrs.class "field" ] [ input [ Attrs.class "input", Attrs.placeholder "Password", Attrs.type_ "password", Events.onInput (Page.input Page.AuthPassword) ] [] ]
             ]

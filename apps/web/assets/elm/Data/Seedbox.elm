@@ -46,11 +46,23 @@ seedboxDecoder =
         |> required "port" int
 
 
-seedboxEncoder : ( String, String, Int ) -> Encode.Value
-seedboxEncoder ( host, name, port_ ) =
+seedboxEncoder : { b | host : String, name : String, port_ : Int, auth : Auth } -> Encode.Value
+seedboxEncoder box =
     let
+        encodedAuth =
+            case box.auth of
+                NoAuth ->
+                    []
+
+                BasicAuth ( n, pw ) ->
+                    let
+                        authObject =
+                            Encode.object [ ( "username", Encode.string n ), ( "password", Encode.string pw ) ]
+                    in
+                        [ ( "auth", authObject ) ]
+
         encodedSeedbox =
-            Encode.object [ ( "host", Encode.string host ), ( "name", Encode.string name ), ( "port", Encode.int port_ ) ]
+            Encode.object (encodedAuth ++ [ ( "host", Encode.string box.host ), ( "name", Encode.string box.name ), ( "port", Encode.int box.port_ ) ])
     in
         Encode.object [ ( "seedbox", encodedSeedbox ) ]
 

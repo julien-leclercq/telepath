@@ -209,12 +209,12 @@ toggleAuth =
     Lens.modify stateOfModel (Lens.modify pendingSeedboxOfState Data.toggleAuth)
 
 
-verifySeedbox : PendingSeedbox -> Result Errors ( String, String, Int )
+verifySeedbox : PendingSeedbox -> Result Errors { auth : Data.Auth, host : String, name : String, port_ : Int }
 verifySeedbox pendingSeedbox =
     String.toInt pendingSeedbox.port_
         |> Result.map
             (\port_ ->
-                ( pendingSeedbox.host, pendingSeedbox.name, port_ )
+                ({ host = pendingSeedbox.host, name = pendingSeedbox.name, port_ = port_, auth = pendingSeedbox.auth })
             )
         |> Result.mapError (\_ -> { errors | port_ = [ "Error parsing port to an int" ] })
 
