@@ -1,10 +1,12 @@
 module Pages.Settings exposing (..)
 
-import Data.Seedbox as Data exposing (Seedbox, updateHost)
+import Data.Seedbox as Data exposing (Seedbox)
 import Debug
 import Http
 import Json.Decode exposing (decodeString, field, list, string, Decoder)
 import Json.Decode.Pipeline as Decode
+import Monocle.Lens as Lens exposing (Lens)
+import Monocle.Optional as Optional exposing (Optional)
 import Platform.Cmd
 import RemoteData exposing (RemoteData, WebData)
 import Request
@@ -42,6 +44,8 @@ type alias Errors =
 type RemoteField
     = Host String
     | Port String
+    | AuthName String
+    | AuthPassword String
 
 
 type ExternalMsg
@@ -65,14 +69,39 @@ pendingFromSeedbox seedbox =
     PendingSeedbox Data.NoAuth seedbox.host seedbox.name (toString seedbox.port_)
 
 
-pendingSeedbox : Model -> PendingSeedbox
-pendingSeedbox model =
-    case model.state of
-        AddSeedbox ( pendingSeedbox, _ ) ->
-            pendingSeedbox
+pendingSeedboxOfState : Lens State PendingSeedbox
+pendingSeedboxOfState =
+    Lens
+        (\state ->
+            case state of
+                AddSeedbox ( pendingSeedbox, _ ) ->
+                    pendingSeedbox
 
-        ConfigSeedbox ( _, pendingBox, _ ) ->
-            pendingBox
+                ConfigSeedbox ( _, pendingBox, _ ) ->
+                    pendingBox
+        )
+        (\pendingBox state ->
+            case state of
+                AddSeedbox ( _, remote ) ->
+                    AddSeedbox ( pendingBox, remote )
+
+                ConfigSeedbox ( box, _, remote ) ->
+                    ConfigSeedbox ( box, pendingBox, remote )
+        )
+
+
+stateOfModel : Lens { b | state : a } a
+stateOfModel =
+    Lens .state (\s m -> { m | state = s })
+
+
+freshSeedbox : PendingSeedbox
+freshSeedbox =
+    { auth = Data.NoAuth
+    , name = ""
+    , port_ = ""
+    , host = ""
+    }
 
 
 
@@ -80,13 +109,14 @@ pendingSeedbox model =
 
 
 type Msg
-    = GoToConfig Seedbox
+    = CreateStatus (RemoteData Errors Seedbox)
     | FreshSeedbox
+    | GoToConfig Seedbox
     | Input RemoteField
-    | CreateStatus (RemoteData Errors Seedbox)
-    | UpdateStatus (WebData Seedbox)
     | Push
     | SeedboxListResponse (WebData (List Seedbox))
+    | ToggleAuth Bool
+    | UpdateStatus (WebData Seedbox)
 
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -109,6 +139,9 @@ update msg model =
 
         CreateStatus remoteData ->
             ( handleCreateResponse remoteData model, NoOp )
+
+        ToggleAuth _ ->
+            ( ( toggleAuth model, Cmd.none ), NoOp )
 
         UpdateStatus _ ->
             ( ( { model | errors = { errors | global = [ "HANDLING UPDATE SEEDBOX RESPONSE NOT IMPLEMENTED YET" ] } }, Cmd.none ), NoOp )
@@ -135,29 +168,45 @@ input field value =
 applyInput : State -> RemoteField -> State
 applyInput state field =
     let
-        updateBox box =
-            case field of
-                Host host ->
-                    { box | host = host }
-
-                Port port_ ->
-                    { box | port_ = port_ }
+        applyWithLens lens value =
+            state
+                |> (lens.set value
+                        |> Lens.modify pendingSeedboxOfState
+                   )
     in
-        case state of
-            AddSeedbox ( box, webData ) ->
-                AddSeedbox <| ( updateBox box, webData )
+        case field of
+            Host host ->
+                applyWithLens Data.hostOfBox host
 
-            ConfigSeedbox ( box, modifs, webData ) ->
-                ConfigSeedbox ( box, updateBox modifs, webData )
+            Port port_ ->
+                applyWithLens Data.portOfBox port_
+
+            AuthName authName ->
+                let
+                    lens =
+                        let
+                            optionalAuthOfBox =
+                                Optional.fromLens Data.authOfBox
+                        in
+                            Optional.compose optionalAuthOfBox Data.userNameOfAuth
+                in
+                    applyWithLens lens authName
+
+            AuthPassword password ->
+                let
+                    lens =
+                        let
+                            optionalAuthOfBox =
+                                Optional.fromLens Data.authOfBox
+                        in
+                            Optional.compose optionalAuthOfBox Data.passwordOfAuth
+                in
+                    applyWithLens lens password
 
 
-freshSeedbox : PendingSeedbox
-freshSeedbox =
-    { auth = Data.NoAuth
-    , name = ""
-    , port_ = ""
-    , host = ""
-    }
+toggleAuth : Model -> Model
+toggleAuth =
+    Lens.modify stateOfModel (Lens.modify pendingSeedboxOfState Data.toggleAuth)
 
 
 verifySeedbox : PendingSeedbox -> Result Errors ( String, String, Int )

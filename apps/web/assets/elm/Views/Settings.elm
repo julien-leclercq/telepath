@@ -1,9 +1,10 @@
 module Views.Settings exposing (..)
 
-import Html exposing (Html, a, br, div, form, input, label, li, p, text, ul)
+import Data.Seedbox as Seedbox
+import Html exposing (Html, a, br, div, form, input, label, li, p, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Pages.Settings as Page
+import Pages.Settings as Page exposing (pendingSeedboxOfState, stateOfModel)
 import RemoteData
 
 
@@ -101,15 +102,19 @@ settingsForm : Page.Model -> Html Page.Msg
 settingsForm model =
     let
         formBody box =
-            [ form [ Events.onSubmit <| Page.Push, Attrs.action "javascript:void(0);" ]
-                [ hostField model
-                , portField model
-                , div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
-                ]
+            [ form [ Events.onSubmit <| Page.Push ]
+                ([ hostField model
+                 , portField model
+                 ]
+                    ++ (authForm model)
+                    ++ [ div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
+                       ]
+                )
             ]
     in
         model
-            |> Page.pendingSeedbox
+            |> stateOfModel.get
+            |> pendingSeedboxOfState.get
             |> formBody
             |> div [ Attrs.class "form" ]
 
@@ -145,7 +150,7 @@ hostField model =
             p [ Attrs.class "help" ] [ text "the url of your box.", br [] [], text "If your box is on the same server as your telepath, just put localhost in here" ]
 
         box =
-            Page.pendingSeedbox model
+            model |> stateOfModel.get |> pendingSeedboxOfState.get
 
         ( inputClass, help ) =
             case model.errors.host of
@@ -171,7 +176,7 @@ portField model =
             p [ Attrs.class "help" ] [ text "the port of your seedbox 9091 by default" ]
 
         box =
-            Page.pendingSeedbox model
+            model |> stateOfModel.get |> pendingSeedboxOfState.get
 
         ( inputClass, help ) =
             case model.errors.port_ of
@@ -205,3 +210,28 @@ warningDiv model =
 
         _ ->
             div [] []
+
+
+authForm : Page.Model -> List (Html Page.Msg)
+authForm model =
+    case model |> stateOfModel.get |> pendingSeedboxOfState.get |> .auth of
+        Seedbox.NoAuth ->
+            [ div [ Attrs.class "field" ]
+                [ input [ Attrs.checked False, Attrs.class "switch", Attrs.id "auth-switch", Attrs.type_ "checkbox", Events.onCheck Page.ToggleAuth, Attrs.checked False ] []
+                , label [ Attrs.for "auth-switch" ] [ text "Basic Auth disabled" ]
+                ]
+            ]
+
+        --   <input id="switchColorDefault" type="checkbox" name="switchColorDefault" class="switch" checked="checked">
+        --   <label for="switchColorDefault">Switch default</label>
+        -- </div>
+        Seedbox.BasicAuth ( name, password ) ->
+            [ div [ Attrs.class "field" ]
+                [ input [ Attrs.checked False, Attrs.class "switch", Attrs.id "auth-switch", Attrs.type_ "checkbox", Events.onCheck Page.ToggleAuth, Attrs.checked True ] []
+                , label [ Attrs.for "auth-switch" ] [ text "Basic Auth enabled" ]
+                ]
+            , div [ Attrs.class "field" ]
+                [ input [ Attrs.class "input", Attrs.placeholder "Name", Attrs.value name, Events.onInput (Page.input Page.AuthName) ] []
+                ]
+            , div [ Attrs.class "field" ] [ input [ Attrs.class "input", Attrs.placeholder "Password", Events.onInput (Page.input Page.AuthPassword) ] [] ]
+            ]
