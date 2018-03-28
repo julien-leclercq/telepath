@@ -14,6 +14,7 @@ defmodule Telepath.Seedbox do
     field(:name, :string, default: "")
     field(:port, :integer)
     field(:remote, :boolean, default: true)
+    field(:session, {:map, :string})
 
     embeds_one(:auth, Auth)
   end
