@@ -22,7 +22,7 @@ type alias Model =
 
 type State
     = AddSeedbox ( PendingSeedbox, RemoteData Errors Seedbox )
-    | ConfigSeedbox ( Seedbox, PendingSeedbox, WebData Seedbox )
+    | ConfigSeedbox ( Seedbox, PendingSeedbox, RemoteData Errors Seedbox )
 
 
 type alias PendingSeedbox =
@@ -43,6 +43,7 @@ type alias Errors =
 
 type RemoteField
     = Host String
+    | Name String
     | Port String
     | AuthName String
     | AuthPassword String
@@ -66,7 +67,11 @@ init =
 
 pendingFromSeedbox : Seedbox -> PendingSeedbox
 pendingFromSeedbox seedbox =
-    PendingSeedbox Data.NoAuth seedbox.host seedbox.name (toString seedbox.port_)
+    PendingSeedbox seedbox.auth seedbox.host seedbox.name (toString seedbox.port_)
+
+
+
+-- Lenses
 
 
 pendingSeedboxOfState : Lens State PendingSeedbox
@@ -90,9 +95,36 @@ pendingSeedboxOfState =
         )
 
 
+errorsOfModel : Lens Model Errors
+errorsOfModel =
+    Lens .errors (\e m -> { m | errors = e })
+
+
 stateOfModel : Lens { b | state : a } a
 stateOfModel =
     Lens .state (\s m -> { m | state = s })
+
+
+seedboxRemoteDataOfState : Lens State (RemoteData Errors Seedbox)
+seedboxRemoteDataOfState =
+    let
+        get state =
+            case state of
+                AddSeedbox ( _, rd ) ->
+                    rd
+
+                ConfigSeedbox ( _, _, rd ) ->
+                    rd
+
+        set rd state =
+            case state of
+                AddSeedbox ( pb, _ ) ->
+                    AddSeedbox ( pb, rd )
+
+                ConfigSeedbox ( sb, pb, _ ) ->
+                    ConfigSeedbox ( sb, pb, rd )
+    in
+        Lens get set
 
 
 freshSeedbox : PendingSeedbox
@@ -116,7 +148,7 @@ type Msg
     | Push
     | SeedboxListResponse (WebData (List Seedbox))
     | ToggleAuth Bool
-    | UpdateStatus (WebData Seedbox)
+    | UpdateStatus (RemoteData Errors Seedbox)
 
 
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
@@ -154,10 +186,10 @@ goToConfig seedbox model =
             if currentBox == seedbox then
                 ( ( model, Cmd.none ), NoOp )
             else
-                ( ( { model | state = ConfigSeedbox ( seedbox, freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
+                ( ( { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
         _ ->
-            ( ( { model | state = ConfigSeedbox ( seedbox, freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
+            ( ( { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
 
 input : (String -> RemoteField) -> String -> Msg
@@ -177,6 +209,9 @@ applyInput state field =
         case field of
             Host host ->
                 applyWithLens Data.hostOfBox host
+
+            Name name ->
+                applyWithLens Data.nameOfBox name
 
             Port port_ ->
                 applyWithLens Data.portOfBox port_
@@ -238,8 +273,21 @@ pushSeedbox model =
                                 ( { model | errors = errors }, Cmd.none )
                    )
 
-        _ ->
-            Debug.crash "updating seedbox not implemented"
+        ConfigSeedbox ( seedbox, pendingSeedbox, _ ) ->
+            pendingSeedbox
+                |> verifySeedbox
+                |> Debug.log "pushing seedbox from a ConfigSeedbox state"
+                |> (\verified ->
+                        case verified of
+                            Result.Ok toEncode ->
+                                Data.seedboxEncoder toEncode
+                                    |> Request.Seedbox.update seedbox
+                                    |> sendRequest
+                                    |> (\cmd -> ( model |> Lens.modify stateOfModel (seedboxRemoteDataOfState.set RemoteData.Loading), Cmd.map UpdateStatus cmd ))
+
+                            Result.Err errors ->
+                                ( errorsOfModel.set errors model, Cmd.none )
+                   )
 
 
 

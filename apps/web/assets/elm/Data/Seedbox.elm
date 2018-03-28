@@ -1,8 +1,8 @@
-module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxListDecoder, seedboxEncoder, toggleAuth, userNameOfAuth)
+module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, nameOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxListDecoder, seedboxEncoder, toggleAuth, userNameOfAuth)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (andThen, bool, int, fail, field, list, nullable, string)
-import Json.Decode.Pipeline exposing (decode, hardcoded, required)
+import Json.Decode.Pipeline exposing (decode, optional, required)
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
 
@@ -30,6 +30,10 @@ type Auth
     | BasicAuth ( UserName, Password )
 
 
+
+-- JSON
+
+
 seedboxListDecoder : Decode.Decoder (List Seedbox)
 seedboxListDecoder =
     list seedboxDecoder
@@ -39,11 +43,22 @@ seedboxDecoder : Decode.Decoder Seedbox
 seedboxDecoder =
     decode Seedbox
         |> required "accessible" bool
-        |> hardcoded NoAuth
+        |> optional "auth" authDecoder NoAuth
         |> required "host" string
         |> required "id" string
         |> required "name" string
         |> required "port" int
+
+
+authDecoder : Decode.Decoder Auth
+authDecoder =
+    let
+        basicAuth u p =
+            BasicAuth ( u, p )
+    in
+        decode basicAuth
+            |> required "username" string
+            |> required "password" string
 
 
 seedboxEncoder : { b | host : String, name : String, port_ : Int, auth : Auth } -> Encode.Value
@@ -67,6 +82,20 @@ seedboxEncoder box =
         Encode.object [ ( "seedbox", encodedSeedbox ) ]
 
 
+
+-- Lenses
+
+
+authOfBox : Lens { box | auth : Auth } Auth
+authOfBox =
+    Lens .auth (\a b -> { b | auth = a })
+
+
+nameOfBox : Lens { box | name : String } String
+nameOfBox =
+    Lens .name (\n b -> { b | name = n })
+
+
 hostOfBox : Lens { b | host : String } String
 hostOfBox =
     Lens .host (\h b -> { b | host = h })
@@ -75,11 +104,6 @@ hostOfBox =
 portOfBox : Lens { b | port_ : p } p
 portOfBox =
     Lens .port_ (\h b -> { b | port_ = h })
-
-
-authOfBox : Lens { box | auth : Auth } Auth
-authOfBox =
-    Lens .auth (\a b -> { b | auth = a })
 
 
 userNameOfAuth : Optional Auth UserName

@@ -103,7 +103,8 @@ settingsForm model =
     let
         formBody box =
             [ form [ Events.onSubmit <| Page.Push ]
-                ([ hostField model
+                ([ nameField model
+                 , hostField model
                  , portField model
                  ]
                     ++ (authForm model)
@@ -166,6 +167,18 @@ hostField model =
                 [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.host, Events.onInput (Page.input Page.Host) ] []
                 ]
             , help
+            ]
+
+
+nameField : Page.Model -> Html Page.Msg
+nameField model =
+    let
+        box =
+            model |> stateOfModel.get |> pendingSeedboxOfState.get
+    in
+        div [ Attrs.class "field" ]
+            [ label [ Attrs.class "label" ] [ text "Name of the Seedbox" ]
+            , input [ Attrs.class "input", Attrs.value box.name, Events.onInput (Page.input Page.Name) ] []
             ]
 
 
