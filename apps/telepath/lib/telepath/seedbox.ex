@@ -4,7 +4,7 @@ defmodule Telepath.Seedbox do
   """
   alias Kaur.Result
   alias Telepath.Seedbox
-  alias Telepath.Seedbox.{Impl, Repository}
+  alias Telepath.Seedbox.{Auth,Impl, Repository}
   require Logger
   use Ecto.Schema
 
@@ -14,6 +14,8 @@ defmodule Telepath.Seedbox do
     field(:name, :string, default: "")
     field(:port, :integer)
     field(:remote, :boolean, default: true)
+
+    embeds_one(:auth, Auth)
   end
 
   def create(seedbox_params) do
@@ -26,6 +28,7 @@ defmodule Telepath.Seedbox do
       |> Result.map(fn _ -> box end)
     end)
   end
+
 
   def get(pid) when is_pid(pid) do
     pid

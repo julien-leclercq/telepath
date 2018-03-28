@@ -4,6 +4,7 @@ defmodule Telepath.Seedbox.Impl do
   """
   alias Kaur.Result
   alias Telepath.Seedbox
+  alias Telepath.Seedbox.Auth
   import Ecto.Changeset
 
   @max_port :math.pow(2, 16) - 1
@@ -19,6 +20,7 @@ defmodule Telepath.Seedbox.Impl do
     |> validate_number(:port, less_than: @max_port)
     |> put_session
     |> put_change(:id, Ecto.UUID.generate())
+    |> cast_embed(:auth, with: &auth_changeset/2)
     |> case do
       %{valid?: true} = changeset ->
         Result.ok(apply_changes(changeset))
@@ -49,5 +51,10 @@ defmodule Telepath.Seedbox.Impl do
       {:error, _reason} ->
         put_change(changeset, :accessible, false)
     end
+  end
+
+  def auth_changeset(auth \\ %Auth{}, params) do
+    auth
+    |> cast(params, [:username, :password])
   end
 end
