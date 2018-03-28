@@ -4,6 +4,7 @@ defmodule Telepath.Seedbox.Server do
   """
   alias Kaur.Result
   alias Telepath.Seedbox
+  alias Telepath.Seedbox.Impl
   require Logger
   use GenServer
 
@@ -18,5 +19,13 @@ defmodule Telepath.Seedbox.Server do
 
   def handle_call(:state, _from, state) do
     {:reply, Result.ok(state), state}
+  end
+
+  def handle_call({:update, params}, _from, state) do
+    state
+    |> Impl.update(params)
+    |> Result.either(fn reason -> {:reply, Result.error(reason), state} end, fn value ->
+      {:reply, Result.ok(value), value}
+    end)
   end
 end

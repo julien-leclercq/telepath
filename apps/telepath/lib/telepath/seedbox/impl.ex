@@ -18,8 +18,6 @@ defmodule Telepath.Seedbox.Impl do
     |> validate_required(@required_params)
     |> validate_number(:port, greater_than: @min_port)
     |> validate_number(:port, less_than: @max_port)
-    |> put_session
-    |> put_change(:id, Ecto.UUID.generate())
     |> cast_embed(:auth, with: &auth_changeset/2)
     |> put_session
   end
@@ -45,14 +43,15 @@ defmodule Telepath.Seedbox.Impl do
     end
   end
 
+  def put_session(%{valid?: false} = changeset), do: changeset
+
   def put_session(changeset) do
-    %{host: _host, port: _port} =
-      box =
-      changeset.data
-      |> Map.merge(changeset.changes)
+    %{host: _host, port: _port} = box = apply_changes(changeset)
 
     case Transmission.get_session(box) do
       {:ok, session} ->
+        IO.puts("session success")
+
         changeset
         |> put_change(:accessible, true)
         |> put_change(:session, session)
@@ -65,5 +64,25 @@ defmodule Telepath.Seedbox.Impl do
   def auth_changeset(auth \\ %Auth{}, params) do
     auth
     |> cast(params, [:username, :password])
+  end
+
+  def update(seedbox, params) do
+    seedbox
+    |> changeset(params)
+    |> case do
+      %{valid?: true} = changeset ->
+        changeset
+        |> apply_changes
+        |> Result.ok()
+
+      changeset ->
+        changeset
+        |> traverse_errors(fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
+        end)
+        |> Result.error()
+    end
   end
 end

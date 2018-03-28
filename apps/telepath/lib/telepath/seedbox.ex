@@ -16,7 +16,7 @@ defmodule Telepath.Seedbox do
     field(:remote, :boolean, default: true)
     field(:session, {:map, :string})
 
-    embeds_one(:auth, Auth)
+    embeds_one(:auth, Auth, on_replace: :update)
   end
 
   def create(seedbox_params) do
@@ -49,5 +49,14 @@ defmodule Telepath.Seedbox do
     |> Enum.map(async_get)
     |> Enum.map(&Task.await/1)
     |> Result.sequence()
+  end
+
+  def update(id, params) do
+    id
+    |> Repository.find()
+    |> Result.either(fn _ -> Result.error(:not_found) end, fn {pid, _} ->
+      pid
+      |> GenServer.call({:update, params}, :infinity)
+    end)
   end
 end
