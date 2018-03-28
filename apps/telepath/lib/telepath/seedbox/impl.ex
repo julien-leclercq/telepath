@@ -12,8 +12,8 @@ defmodule Telepath.Seedbox.Impl do
   @params [:host, :id, :name, :port]
   @required_params [:host, :port]
 
-  def create(params) do
-    %Seedbox{}
+  def changeset(%Seedbox{} = seedbox, params) do
+    seedbox
     |> cast(params, @params)
     |> validate_required(@required_params)
     |> validate_number(:port, greater_than: @min_port)
@@ -21,9 +21,18 @@ defmodule Telepath.Seedbox.Impl do
     |> put_session
     |> put_change(:id, Ecto.UUID.generate())
     |> cast_embed(:auth, with: &auth_changeset/2)
+    |> put_session
+  end
+
+  def create(params) do
+    %Seedbox{}
+    |> changeset(params)
     |> case do
       %{valid?: true} = changeset ->
-        Result.ok(apply_changes(changeset))
+        changeset
+        |> put_change(:id, Ecto.UUID.generate())
+        |> apply_changes
+        |> Result.ok()
 
       changeset ->
         changeset
