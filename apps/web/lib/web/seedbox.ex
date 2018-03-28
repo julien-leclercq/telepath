@@ -10,4 +10,8 @@ defmodule Web.Seedbox do
   def create(params) do
     Telepath.Seedbox.create(params)
   end
+
+  def update(id, params) do
+    Telepath.Seedbox.update(id, params)
+  end
 end
