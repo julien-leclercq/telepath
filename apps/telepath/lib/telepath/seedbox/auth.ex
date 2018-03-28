@@ -4,8 +4,7 @@ defmodule Telepath.Seedbox.Auth do
   @primary_key false
 
   embedded_schema do
-    field :username, :string
-    field :password, :string
+    field(:username, :string)
+    field(:password, :string)
   end
-
 end

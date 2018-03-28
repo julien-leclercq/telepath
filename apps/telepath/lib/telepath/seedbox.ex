@@ -4,7 +4,7 @@ defmodule Telepath.Seedbox do
   """
   alias Kaur.Result
   alias Telepath.Seedbox
-  alias Telepath.Seedbox.{Auth,Impl, Repository}
+  alias Telepath.Seedbox.{Auth, Impl, Repository}
   require Logger
   use Ecto.Schema
 
@@ -28,7 +28,6 @@ defmodule Telepath.Seedbox do
       |> Result.map(fn _ -> box end)
     end)
   end
-
 
   def get(pid) when is_pid(pid) do
     pid
