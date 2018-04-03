@@ -1,8 +1,10 @@
 defmodule Transmission do
   alias Kaur.Result
+  require Logger
   use HTTPoison.Base
 
   @get_session "session-get"
+  @get_torrents "torrent-get"
   @session_id_key "X-Transmission-Session-Id"
 
   @moduledoc """
@@ -32,13 +34,91 @@ defmodule Transmission do
     |> send_request(seedbox, [], options)
   end
 
+  def get_all_torrents(seedbox, options \\ []) do
+    %Request{
+      method: @get_torrents,
+      arguments: %{
+        fields: [
+          "activityDate",
+          "addedDate",
+          "bandwidthPriority",
+          "comment",
+          "corruptEver",
+          "creator",
+          "dateCreated",
+          "desiredAvailable",
+          "doneDate",
+          "downloadDir",
+          "downloadedEver",
+          "downloadLimit",
+          "downloadLimited",
+          "error",
+          "errorString",
+          "eta",
+          "etaIdle",
+          "files",
+          "fileStats",
+          "hashString",
+          "haveUnchecked",
+          "haveValid",
+          "honorsSessionLimits",
+          "id",
+          "isFinished",
+          "isPrivate",
+          "isStalled",
+          "leftUntilDone",
+          "magnetLink",
+          "manualAnnounceTime",
+          "maxConnectedPeers",
+          "metadataPercentComplete",
+          "name",
+          "peer",
+          "peers",
+          "peersConnected",
+          "peersFrom",
+          "peersGettingFromUs",
+          "peersSendingToUs",
+          "percentDone",
+          "pieces",
+          "pieceCount",
+          "pieceSize",
+          "priorities",
+          "queuePosition",
+          "rateDownload",
+          "rateUpload",
+          "recheckProgress",
+          "secondsDownloading",
+          "secondsSeeding",
+          "seedIdleLimit",
+          "seedIdleMode",
+          "seedRatioLimit",
+          "seedRatioMode",
+          "sizeWhenDone",
+          "startDate",
+          "status",
+          "trackers",
+          "trackerStats",
+          "totalSize",
+          "torrentFile",
+          "uploadedEver",
+          "uploadLimit",
+          "uploadLimited",
+          "uploadRatio",
+          "wanted",
+          "webseeds",
+          "webseedsSendingToUs"
+        ]
+      }
+    }
+    |> send_request(seedbox, [], options)
+  end
+
   defp send_request(
          %Request{} = request,
          %{auth: %{username: user, password: password}} = seedbox,
          headers,
          options
        ) do
-    IO.puts("authentified seedbox")
     seedbox = Map.delete(seedbox, :auth)
     options = [hackney: [basic_auth: {user, password}]] ++ options
 
@@ -56,10 +136,16 @@ defmodule Transmission do
   end
 
   defp send_request(%Request{} = request, %{host: _host, port: _port} = seedbox, headers, options) do
+    log_request(seedbox, request)
+
     seedbox
     |> build_url
     |> post(request, headers, options)
     |> Result.and_then(&handle_response/1)
+  end
+
+  defp log_request(%{host: host, port: port} = _seedbox, %{method: method} = _request) do
+    Logger.info(fn -> "[transmission] sending #{method} to #{host}:#{port}" end)
   end
 
   defp process_request_body(request) do
@@ -114,7 +200,7 @@ defmodule Transmission do
     body
     |> Poison.decode(as: %Response{})
     |> Result.and_then(fn
-      %Response{result: "success"} = response -> {:ok, response}
+      %Response{result: "success"} = response -> {:ok, response.arguments}
       %Response{result: reason} -> {:error, reason}
     end)
   end
