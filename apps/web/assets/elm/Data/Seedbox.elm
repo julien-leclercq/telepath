@@ -1,9 +1,17 @@
-module Data.Seedbox exposing (..)
+module Data.Seedbox exposing (Seedbox, seedboxDecoder, seedboxListDecoder, seedboxEncoder, updateHost)
 
 import Json.Encode as Encode
 import Json.Decode as Decode exposing (andThen, bool, int, fail, field, list, nullable, string)
 import Json.Decode.Pipeline exposing (decode, required)
-import Types exposing (..)
+
+
+type alias Seedbox =
+    { accessible : Bool
+    , host : String
+    , id : String
+    , name : String
+    , port_ : Int
+    }
 
 
 seedboxListDecoder : Decode.Decoder (List Seedbox)
@@ -13,51 +21,33 @@ seedboxListDecoder =
 
 seedboxDecoder : Decode.Decoder Seedbox
 seedboxDecoder =
-    field "remote" bool
-        |> andThen
-            (\remote ->
-                if remote then
-                    Decode.map Remote remoteSeedboxDecoder
-                else
-                    fail "Cannot decode non remote seedbox yet, check further versions ;)"
-            )
+    decode Seedbox
+        |> required "accessible" bool
+        |> required "host" string
+        |> required "id" string
+        |> required "name" string
+        |> required "port" int
 
 
-remoteSeedboxDecoder : Decode.Decoder RemoteSeedbox
-remoteSeedboxDecoder =
-    decode RemoteSeedbox
-        |> required "id" int
-        |> required "url" string
-        |> required "port" (nullable int)
-
-
-seedboxEncoder : Seedbox -> Encode.Value
-seedboxEncoder seedbox =
-    case seedbox of
-        Remote seedbox ->
-            remoteSeedboxEncoder seedbox
-
-
-remoteSeedboxEncoder : RemoteSeedbox -> Encode.Value
-remoteSeedboxEncoder seedbox =
+seedboxEncoder : ( String, String, Int ) -> Encode.Value
+seedboxEncoder ( host, name, port_ ) =
     let
-        encodedPort =
-            case seedbox.port_ of
-                Just p ->
-                    Encode.int p
-
-                Nothing ->
-                    Encode.null
+        encodedSeedbox =
+            Encode.object [ ( "host", Encode.string host ), ( "name", Encode.string name ), ( "port", Encode.int port_ ) ]
     in
-        Encode.object
-            [ ( "url", Encode.string seedbox.url ), ( "port", encodedPort ) ]
+        Encode.object [ ( "seedbox", encodedSeedbox ) ]
 
 
-url seedbox =
-    case seedbox of
-        Remote seedbox ->
-            seedbox.url
+host : Seedbox -> String
+host seedbox =
+    seedbox.host
 
 
-id (Remote seedbox) =
-    seedbox.id
+id : Seedbox -> String
+id =
+    .id
+
+
+updateHost : String -> Seedbox -> Seedbox
+updateHost host seedbox =
+    { seedbox | host = host }

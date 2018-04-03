@@ -61,7 +61,12 @@ defmodule Transmission do
   end
 
   defp process_request_options(options) do
-    [follow_redirect: true] ++ options
+    options = [follow_redirect: true] ++ options
+
+    case Application.get_env(Transmission, :proxy) do
+      nil -> options
+      proxy -> [hackney: [proxy: proxy]] ++ options
+    end
   end
 
   defp process_url(url) do
