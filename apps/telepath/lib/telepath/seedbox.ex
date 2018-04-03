@@ -8,10 +8,11 @@ defmodule Telepath.Seedbox do
   use Ecto.Schema
 
   embedded_schema do
+    field(:accessible, :boolean, default: false)
     field(:host, :string)
-    field(:name, :string)
-    field(:port, :string)
-    field(:accessible, :boolean)
+    field(:name, :string, default: "")
+    field(:port, :integer)
+    field(:remote, :boolean, default: true)
   end
 
   def create(seedbox_params) do

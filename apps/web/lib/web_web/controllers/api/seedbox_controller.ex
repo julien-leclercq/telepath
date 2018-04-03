@@ -12,8 +12,15 @@ defmodule WebWeb.Api.SeedboxController do
   def create(conn, %{"seedbox" => seedbox_params} = _params) do
     seedbox_params
     |> Web.Seedbox.create()
-    |> Result.either(fn reason -> json(conn, %{error: reason}) end, fn seedbox ->
-      json(conn, %{seedbox: seedbox})
-    end)
+    |> Result.either(
+      fn reason ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> json(%{error: reason})
+      end,
+      fn seedbox ->
+        json(conn, %{seedbox: seedbox})
+      end
+    )
   end
 end

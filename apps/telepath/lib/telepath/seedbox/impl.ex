@@ -6,6 +6,8 @@ defmodule Telepath.Seedbox.Impl do
   alias Telepath.Seedbox
   import Ecto.Changeset
 
+  @max_port :math.pow(2, 16) - 1
+  @min_port 0
   @params [:host, :id, :name, :port]
   @required_params [:host, :port]
 
@@ -13,11 +15,22 @@ defmodule Telepath.Seedbox.Impl do
     %Seedbox{}
     |> cast(params, @params)
     |> validate_required(@required_params)
+    |> validate_number(:port, greater_than: @min_port)
+    |> validate_number(:port, less_than: @max_port)
     |> put_session
     |> put_change(:id, Ecto.UUID.generate())
     |> case do
-      %{valid?: true} = changeset -> Result.ok(apply_changes(changeset))
-      changeset -> Result.error(changeset.errors)
+      %{valid?: true} = changeset ->
+        Result.ok(apply_changes(changeset))
+
+      changeset ->
+        changeset
+        |> traverse_errors(fn {msg, opts} ->
+          Enum.reduce(opts, msg, fn {key, value}, acc ->
+            String.replace(acc, "%{#{key}}", to_string(value))
+          end)
+        end)
+        |> Result.error()
     end
   end
 
