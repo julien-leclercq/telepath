@@ -16,7 +16,10 @@ view model =
                 [ tabs model
                 , errorDiv model
                 , warningDiv model
-                , settingsForm model
+                , div [ Attrs.class "columns" ]
+                    [ div [ Attrs.class "column is-half" ] [ settingsForm model ]
+                    , div [ Attrs.class "column is-half" ] [ sessionForm model ]
+                    ]
                 ]
 
             RemoteData.Loading ->
@@ -49,11 +52,8 @@ seedboxTabs : Page.Model -> List (Html Page.Msg)
 seedboxTabs model =
     let
         name box =
-            if (box |> .host) == "" then
-                box
-                    |> .id
-                    |> toString
-                    |> (++) "Box "
+            if (box.name) /= "" then
+                box.name
             else
                 .host box
     in
@@ -108,8 +108,7 @@ settingsForm model =
                  , portField model
                  ]
                     ++ (authForm model)
-                    ++ [ div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
-                       ]
+                    ++ submitAndDeleteGroup model
                 )
             ]
     in
@@ -208,6 +207,21 @@ portField model =
             ]
 
 
+submitAndDeleteGroup : Page.Model -> List (Html Page.Msg)
+submitAndDeleteGroup model =
+    case model.state of
+        Page.ConfigSeedbox _ ->
+            [ div [ Attrs.class "field is-grouped" ]
+                [ div [ Attrs.class "control" ] [ input [ Attrs.class "field button is-success", Attrs.type_ "submit" ] [] ]
+                , div [ Attrs.class "control" ] [ input [ Attrs.class "field button is-danger", Attrs.type_ "button", Attrs.value "Delete", Events.onClick Page.DeleteSeedbox ] [] ]
+                ]
+            ]
+
+        _ ->
+            [ div [ Attrs.class "field" ] [ input [ Attrs.class "field button", Attrs.type_ "submit" ] [] ]
+            ]
+
+
 warningDiv : Page.Model -> Html Page.Msg
 warningDiv model =
     case model.state of
@@ -245,3 +259,8 @@ authForm model =
                 ]
             , div [ Attrs.class "field" ] [ input [ Attrs.class "input", Attrs.placeholder "Password", Attrs.type_ "password", Events.onInput (Page.input Page.AuthPassword) ] [] ]
             ]
+
+
+sessionForm : Page.Model -> Html Page.Msg
+sessionForm _ =
+    div [] [ text "here comes the session form" ]

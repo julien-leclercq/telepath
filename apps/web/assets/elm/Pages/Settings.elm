@@ -71,7 +71,7 @@ pendingFromSeedbox seedbox =
 
 
 
--- Lenses
+-- Optic helpers
 
 
 pendingSeedboxOfState : Lens State PendingSeedbox
@@ -142,6 +142,8 @@ freshSeedbox =
 
 type Msg
     = CreateStatus (RemoteData Errors Seedbox)
+    | DeleteSeedbox
+    | DeleteSeedboxStatus (RemoteData Errors String)
     | FreshSeedbox
     | GoToConfig Seedbox
     | Input RemoteField
@@ -154,6 +156,12 @@ type Msg
 update : Msg -> Model -> ( ( Model, Cmd Msg ), ExternalMsg )
 update msg model =
     case msg of
+        DeleteSeedbox ->
+            ( deleteSeedbox model, NoOp )
+
+        DeleteSeedboxStatus remoteData ->
+            ( handleDeleteStatus remoteData model, NoOp )
+
         FreshSeedbox ->
             ( ( { model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
@@ -290,10 +298,6 @@ pushSeedbox model =
                    )
 
 
-
--- ( { model | errors = { errors | global = [ "UPDATE SEEDBOX NOT IMPLEMENTED" ] } }, Cmd.none )
-
-
 sendRequest : Http.Request a -> Cmd (RemoteData Errors a)
 sendRequest request =
     request
@@ -327,6 +331,35 @@ handleCreateResponse remoteData model =
             Debug.crash "Remote Data is in an unplanned state"
 
 
+handleDeleteStatus : RemoteData Errors String -> Model -> ( Model, Cmd Msg )
+handleDeleteStatus remoteData model =
+    let
+        removeFromList id =
+            RemoteData.map (List.filter (\s -> s.id /= id))
+    in
+        case remoteData of
+            RemoteData.Success deletedId ->
+                let
+                    newModel =
+                        case model.state of
+                            ConfigSeedbox ( { id }, _, _ ) ->
+                                if id == deletedId then
+                                    (({ model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }))
+                                else
+                                    (model)
+
+                            _ ->
+                                (model)
+                in
+                    ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
+
+            RemoteData.Failure errors ->
+                ( { model | errors = errors }, Cmd.none )
+
+            _ ->
+                Debug.crash "should not happen"
+
+
 handleHttpErrors : Http.Error -> Errors
 handleHttpErrors error =
     case error of
@@ -345,6 +378,19 @@ handleHttpErrors error =
 
         Http.BadPayload error _ ->
             { errors | global = [ error ] }
+
+
+deleteSeedbox : Model -> ( Model, Cmd Msg )
+deleteSeedbox model =
+    case model.state of
+        AddSeedbox _ ->
+            ( model, Cmd.none )
+
+        ConfigSeedbox ( box, _, _ ) ->
+            box
+                |> Request.Seedbox.delete
+                |> sendRequest
+                |> (\cmd -> ( model, Cmd.map DeleteSeedboxStatus cmd ))
 
 
 errorsDecoder : Decoder Errors

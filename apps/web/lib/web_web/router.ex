@@ -28,6 +28,7 @@ defmodule WebWeb.Router do
       get("/", Api.SeedboxController, :index)
       post("/", Api.SeedboxController, :create)
       put("/:id", Api.SeedboxController, :update)
+      delete("/:id", Api.SeedboxController, :delete)
     end
 
     get("/torrents", Api.TorrentController, :index)

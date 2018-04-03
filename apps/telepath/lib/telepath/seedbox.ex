@@ -59,4 +59,17 @@ defmodule Telepath.Seedbox do
       |> GenServer.call({:update, params}, :infinity)
     end)
   end
+
+  def delete(id) do
+    id
+    |> Repository.find()
+    |> Result.either(fn _ -> Result.error(:not_found) end, fn {pid, _} ->
+      pid
+      |> GenServer.stop(:normal)
+      |> case do
+        :ok -> {:ok, id}
+        _ -> Result.error("impossible to stop process (this is not normal)")
+      end
+    end)
+  end
 end

@@ -1,4 +1,4 @@
-module Request exposing (Error, errorDecoder, put)
+module Request exposing (Error, errorDecoder, delete, put)
 
 import Http
 import Json.Decode as Decode exposing (field)
@@ -20,6 +20,19 @@ put url body decoder =
         , expect = Http.expectJson decoder
         , headers = []
         , method = "PUT"
+        , timeout = Nothing
+        , url = url
+        , withCredentials = False
+        }
+
+
+delete : String -> Http.Request String
+delete url =
+    Http.request
+        { body = Http.emptyBody
+        , expect = Http.expectString
+        , headers = []
+        , method = "DELETE"
         , timeout = Nothing
         , url = url
         , withCredentials = False

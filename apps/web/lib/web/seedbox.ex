@@ -14,4 +14,8 @@ defmodule Web.Seedbox do
   def update(id, params) do
     Telepath.Seedbox.update(id, params)
   end
+
+  def delete(id) do
+    Telepath.Seedbox.delete(id)
+  end
 end

@@ -42,3 +42,7 @@ update seedbox seedboxJson =
     )
     <|
         Decode.field "seedbox" seedboxDecoder
+
+
+delete seedbox =
+    Request.delete (endpoint ++ "/" ++ seedbox.id)

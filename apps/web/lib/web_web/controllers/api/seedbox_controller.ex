@@ -40,4 +40,21 @@ defmodule WebWeb.Api.SeedboxController do
       end
     )
   end
+
+  def delete(conn, %{"id" => id} = _params) do
+    id
+    |> Web.Seedbox.delete()
+    |> Result.either(
+      fn reason ->
+        case reason do
+          :not_found -> conn |> put_status(:not_found)
+          _ -> conn |> put_status(:unprocessable_entity)
+        end
+        |> json(%{errors: reason})
+      end,
+      fn _ ->
+        send_resp(conn, :ok, id)
+      end
+    )
+  end
 end
