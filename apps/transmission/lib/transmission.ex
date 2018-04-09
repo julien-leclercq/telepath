@@ -6,6 +6,76 @@ defmodule Transmission do
   @get_session "session-get"
   @get_torrents "torrent-get"
   @session_id_key "X-Transmission-Session-Id"
+  @torrent_fields [
+    "activityDate",
+    "addedDate",
+    "bandwidthPriority",
+    "comment",
+    "corruptEver",
+    "creator",
+    "dateCreated",
+    "desiredAvailable",
+    "doneDate",
+    "downloadDir",
+    "downloadedEver",
+    "downloadLimit",
+    "downloadLimited",
+    "error",
+    "errorString",
+    "eta",
+    "etaIdle",
+    "files",
+    "fileStats",
+    "hashString",
+    "haveUnchecked",
+    "haveValid",
+    "honorsSessionLimits",
+    "id",
+    "isFinished",
+    "isPrivate",
+    "isStalled",
+    "leftUntilDone",
+    "magnetLink",
+    "manualAnnounceTime",
+    "maxConnectedPeers",
+    "metadataPercentComplete",
+    "name",
+    "peer",
+    "peers",
+    "peersConnected",
+    "peersFrom",
+    "peersGettingFromUs",
+    "peersSendingToUs",
+    "percentDone",
+    "pieces",
+    "pieceCount",
+    "pieceSize",
+    "priorities",
+    "queuePosition",
+    "rateDownload",
+    "rateUpload",
+    "recheckProgress",
+    "secondsDownloading",
+    "secondsSeeding",
+    "seedIdleLimit",
+    "seedIdleMode",
+    "seedRatioLimit",
+    "seedRatioMode",
+    "sizeWhenDone",
+    "startDate",
+    "status",
+    "trackers",
+    "trackerStats",
+    "totalSize",
+    "torrentFile",
+    "uploadedEver",
+    "uploadLimit",
+    "uploadLimited",
+    "uploadRatio",
+    "wanted",
+    "webseeds",
+    "webseedsSendingToUs"
+  ]
 
   @moduledoc """
   Documentation for Transmission.
@@ -38,79 +108,11 @@ defmodule Transmission do
     %Request{
       method: @get_torrents,
       arguments: %{
-        fields: [
-          "activityDate",
-          "addedDate",
-          "bandwidthPriority",
-          "comment",
-          "corruptEver",
-          "creator",
-          "dateCreated",
-          "desiredAvailable",
-          "doneDate",
-          "downloadDir",
-          "downloadedEver",
-          "downloadLimit",
-          "downloadLimited",
-          "error",
-          "errorString",
-          "eta",
-          "etaIdle",
-          "files",
-          "fileStats",
-          "hashString",
-          "haveUnchecked",
-          "haveValid",
-          "honorsSessionLimits",
-          "id",
-          "isFinished",
-          "isPrivate",
-          "isStalled",
-          "leftUntilDone",
-          "magnetLink",
-          "manualAnnounceTime",
-          "maxConnectedPeers",
-          "metadataPercentComplete",
-          "name",
-          "peer",
-          "peers",
-          "peersConnected",
-          "peersFrom",
-          "peersGettingFromUs",
-          "peersSendingToUs",
-          "percentDone",
-          "pieces",
-          "pieceCount",
-          "pieceSize",
-          "priorities",
-          "queuePosition",
-          "rateDownload",
-          "rateUpload",
-          "recheckProgress",
-          "secondsDownloading",
-          "secondsSeeding",
-          "seedIdleLimit",
-          "seedIdleMode",
-          "seedRatioLimit",
-          "seedRatioMode",
-          "sizeWhenDone",
-          "startDate",
-          "status",
-          "trackers",
-          "trackerStats",
-          "totalSize",
-          "torrentFile",
-          "uploadedEver",
-          "uploadLimit",
-          "uploadLimited",
-          "uploadRatio",
-          "wanted",
-          "webseeds",
-          "webseedsSendingToUs"
-        ]
+        fields: @torrent_fields
       }
     }
     |> send_request(seedbox, [], options)
+    |> Result.map(&Map.get(&1, "torrents"))
   end
 
   defp send_request(
@@ -124,19 +126,17 @@ defmodule Transmission do
 
     request
     |> send_request(seedbox, headers, options)
-    |> Result.or_else(fn error ->
-      case error do
-        {:conflict, header} ->
-          send_request(request, seedbox, [header | headers], options)
-
-        _ ->
-          Result.error(error)
-      end
-    end)
   end
 
   defp send_request(%Request{} = request, %{host: _host, port: _port} = seedbox, headers, options) do
     log_request(seedbox, request)
+
+    headers =
+      if seedbox.session_id do
+        [seedbox.session_id | headers]
+      else
+        headers
+      end
 
     seedbox
     |> build_url
