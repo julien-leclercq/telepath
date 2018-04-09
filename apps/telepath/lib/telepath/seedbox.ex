@@ -15,11 +15,13 @@ defmodule Telepath.Seedbox do
     field(:port, :integer)
     field(:remote, :boolean, default: true)
     field(:session, {:map, :string})
-    field(:torrents, {:array, :string})
+    field(:session_id, :string)
+    field(:torrents, {:array, :string}, default: [])
 
     embeds_one(:auth, Auth, on_replace: :update)
   end
 
+  @spec create(map) :: {:ok, %Seedbox{}} | {:error, term()}
   def create(seedbox_params) do
     seedbox_params
     |> Impl.create()
@@ -29,6 +31,13 @@ defmodule Telepath.Seedbox do
       |> Repository.create()
       |> Result.map(fn _ -> box end)
     end)
+  end
+
+  def dispatch_call(call) do
+    Supervisor.which_children(Seedbox.Supervisor)
+    |> Enum.map(fn {_, pid, _, _} -> Task.async(call.(pid)) end)
+    |> Enum.map(&Task.await/1)
+    |> Result.sequence()
   end
 
   def get(pid) when is_pid(pid) do
@@ -42,14 +51,11 @@ defmodule Telepath.Seedbox do
   end
 
   def list() do
-    async_get = fn {_, pid, _, _} ->
-      Task.async(fn -> get(pid) end)
+    async_get = fn pid ->
+      fn -> get(pid) end
     end
 
-    Supervisor.which_children(Seedbox.Supervisor)
-    |> Enum.map(async_get)
-    |> Enum.map(&Task.await/1)
-    |> Result.sequence()
+    dispatch_call(async_get)
   end
 
   def update(id, params) do
