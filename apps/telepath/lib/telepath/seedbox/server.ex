@@ -29,6 +29,14 @@ defmodule Telepath.Seedbox.Server do
     end)
   end
 
+  def handle_call(:get_torrents, _from, state) do
+    torrents =
+      state
+      |> Impl.get_torrents()
+
+    {:reply, torrents, state}
+  end
+
   @doc """
   refresh the seedbox state every 15 seconds this time is totally arbitrary and
   may be tunable in a further update.
