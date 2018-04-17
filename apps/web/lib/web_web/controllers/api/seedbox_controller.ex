@@ -5,7 +5,7 @@ defmodule WebWeb.Api.SeedboxController do
   def index(conn, _params) do
     Web.Seedbox.list()
     |> Result.either(fn reason -> json(conn, %{error: reason}) end, fn seedboxes ->
-      json(conn, %{seedboxes: seedboxes})
+      render(conn, "index.json", seedboxes: seedboxes)
     end)
   end
 
@@ -19,7 +19,7 @@ defmodule WebWeb.Api.SeedboxController do
         |> json(%{error: reason})
       end,
       fn seedbox ->
-        json(conn, %{seedbox: seedbox})
+        render(conn, "show.json", seedbox: seedbox)
       end
     )
   end
@@ -36,7 +36,7 @@ defmodule WebWeb.Api.SeedboxController do
         |> json(%{error: reason})
       end,
       fn seedbox ->
-        json(conn, %{seedbox: seedbox})
+        render(conn, "show.json", seedbox: seedbox)
       end
     )
   end
