@@ -14,6 +14,8 @@ listHeader =
         [ div [ Attrs.class "level-left column" ]
             [ div [ Attrs.class "button", onClick TorrentsPage.AddTorrent ] [ text "Add torrent" ]
             ]
+        , div [ Attrs.class "level-left column" ]
+            [ div [ Attrs.class "button", onClick (TorrentsPage.Sort TorrentsPage.Name) ] [ text "Sort by name" ] ]
         ]
 
 
