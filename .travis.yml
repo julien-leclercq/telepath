@@ -3,3 +3,8 @@ elixir:
   - 1.6.3
 otp_release:
   - '20.3.1'
+
+script:
+  - mix format --check-formatted
+  - mix credo
+  - mix test
