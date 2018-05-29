@@ -7,14 +7,17 @@ defmodule Telepath.MixProject do
       version: "0.1.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      build_path: "../../_build",
+      deps_path: "../../deps",
+      lockfile: "../../mix.lock"
     ]
   end
 
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
+      extra_applications: [:logger, :ecto_mnesia],
       mod: {Telepath.Application, []}
     ]
   end
@@ -23,7 +26,8 @@ defmodule Telepath.MixProject do
   defp deps do
     [
       {:kaur, "~> 1.1.0"},
-      {:ecto, "~> 2.2.9"}
+      {:ecto, "~> 2.2.9"},
+      {:ecto_mnesia, git: "https://github.com/julien-leclercq/ecto_mnesia.git", branch: "master"}
     ]
   end
 end
