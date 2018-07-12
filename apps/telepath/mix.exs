@@ -26,8 +26,8 @@ defmodule Telepath.MixProject do
   defp deps do
     [
       {:kaur, "~> 1.1.0"},
-      {:ecto, "~> 2.2.9"},
-      {:ecto_mnesia, git: "https://github.com/julien-leclercq/ecto_mnesia.git", branch: "master"}
+      {:ecto, "~> 2.1.6"},
+      {:ecto_mnesia, "~> 0.9.1"}
     ]
   end
 end
