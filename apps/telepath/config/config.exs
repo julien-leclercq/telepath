@@ -2,6 +2,13 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
+config :telepath, Telepath.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  database: "telepath_repo",
+  username: "user",
+  password: "pass",
+  hostname: "localhost"
+
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this
 # file won't be loaded nor affect the parent project. For this reason,
@@ -29,5 +36,8 @@ use Mix.Config
 #
 #     import_config "#{Mix.env}.exs"
 
-config Telepath.Application, Persistency,
-  adapter: EctoMnesia.Adapter
+config :telepath, ecto_repos: [Telepath.Repo]
+
+config :telepath, Telepath.Repo, adapter: EctoMnesia.Adapter
+
+config :mnesia, :dir, 'priv/data/mnesia'
