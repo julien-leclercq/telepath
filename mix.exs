@@ -5,7 +5,8 @@ defmodule TransmissionUi.Mixfile do
     [
       apps_path: "apps",
       build_embedded: Mix.env() == :prod,
-      start_permanent: Mix.env() == :prod
+      start_permanent: Mix.env() == :prod,
+      deps: deps()
     ]
   end
 
@@ -23,8 +24,9 @@ defmodule TransmissionUi.Mixfile do
   # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
-      {:credo, "~> 0.8.10", only: [:dev, :test], runtime: false},
-      {:mix_under, git: "https://github.com/vic/mix_under", ref: "9690e8336b4f0bd80f9e04fcdb4e4a5d66384c74"}
+      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
+      {:mix_under,
+       git: "https://github.com/vic/mix_under", ref: "9690e8336b4f0bd80f9e04fcdb4e4a5d66384c74"}
     ]
   end
 end
