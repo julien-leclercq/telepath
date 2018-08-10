@@ -15,7 +15,7 @@ defmodule Telepath.Seedbox.Supervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def start_child(supervisor, %Telepath.Seedbox{} = seedbox, name_from_repo) do
+  def start_child(supervisor, %Telepath.Data.Seedbox{} = seedbox, name_from_repo) do
     child_spec = %{
       id: {Seedbox, seedbox.id},
       start: {Server, :start_link, [seedbox, [name: name_from_repo]]},

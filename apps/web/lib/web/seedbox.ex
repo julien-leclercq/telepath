@@ -2,20 +2,21 @@ defmodule Web.Seedbox do
   @moduledoc """
   This module provide functions to access and treat seedbox informations
   """
+  alias Telepath.Data.Seedbox
 
   def list do
-    Telepath.Seedbox.list()
+    Seedbox.list()
   end
 
   def create(params) do
-    Telepath.Seedbox.create(params)
+    Seedbox.create(params)
   end
 
   def update(id, params) do
-    Telepath.Seedbox.update(id, params)
+    Seedbox.update(id, params)
   end
 
   def delete(id) do
-    Telepath.Seedbox.delete(id)
+    Seedbox.delete(id)
   end
 end

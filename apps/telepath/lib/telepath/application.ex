@@ -2,6 +2,7 @@ defmodule Telepath.Application do
   @moduledoc """
   Implementation of Telepath application
   """
+
   alias Telepath.Seedbox
   use Application
 
