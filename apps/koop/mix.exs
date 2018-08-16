@@ -37,6 +37,8 @@ defmodule FlacMetaReader.Mixfile do
       {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:ex_doc, "~> 0.16", only: :dev, runtime: false},
+      {:ecto, "~> 2.1.6"},
+      {:ecto_mnesia, "~> 0.9.1"},
       {:ffmpex, "~> 0.5.2"},
       {:kaur, "~> 1.1.0"}
     ]

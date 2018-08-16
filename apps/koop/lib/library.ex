@@ -16,7 +16,10 @@ defmodule Koop.Library do
       if File.dir?(path) do
         path
         |> File.ls()
-        |> Enum.map(&get_track_infos(&1))
+        |> Result.and_then(fn files ->
+          Enum.map(files, &get_infos("#{path}/#{&1}")
+          )
+        end)
       else
         ext = Path.extname(path)
 
