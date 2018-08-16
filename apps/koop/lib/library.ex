@@ -1,6 +1,8 @@
 defmodule Koop.Library do
   alias Kaur.Result
 
+  require Logger
+
   defstruct files: []
 
   @doc """
@@ -8,6 +10,8 @@ defmodule Koop.Library do
   """
   @spec get_infos(Path.t()) :: Result.result_tuple()
   def get_infos(path) do
+    Logger.debug "Starting getting infos on #{path}"
+
     path
     |> File.exists?()
     |> unless do
