@@ -1,5 +1,4 @@
 defmodule Telepath.Seedboxes do
-
   alias Kaur.Result
 
   alias Telepath.Data.Seedbox

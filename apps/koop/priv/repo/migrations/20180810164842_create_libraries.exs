@@ -3,7 +3,7 @@ defmodule Koop.Repo.Migrations.CreateLibraries do
 
   def change do
     create table :libraries do
-      add :root_path, :string
+      add :root_path, :string, unique: true
     end
   end
 end

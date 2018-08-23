@@ -20,7 +20,7 @@ defmodule FlacMetaReader.Mixfile do
   # Type "mix help compile.app" for more information
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
-    [extra_applications: [:logger]]
+    [mod: {Koop.App, []}, extra_applications: [:logger]]
   end
 
   # Dependencies can be Hex packages:
@@ -34,13 +34,18 @@ defmodule FlacMetaReader.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
-      {:ex_doc, "~> 0.16", only: :dev, runtime: false},
       {:ecto, "~> 2.1.6"},
       {:ecto_mnesia, "~> 0.9.1"},
       {:ffmpex, "~> 0.5.2"},
-      {:kaur, "~> 1.1.0"}
+      {:kaur, "~> 1.1.0"},
+
+      # Test only
+      {:response_snapshot, "~> 1.0.0", only: [:test]},
+
+      # NOT RUNTIME
+      {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
     ]
   end
 end

@@ -4,7 +4,6 @@ use Mix.Config
 
 config :koop, ecto_repos: [Koop.Repo]
 
-config :koop, Koop.Repo,
-  adapter: EctoMnesia.Adapter
+config :koop, Koop.Repo, adapter: EctoMnesia.Adapter
 
 config :mnesia, :dir, 'priv/data/mnesia'
