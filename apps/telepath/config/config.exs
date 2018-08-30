@@ -32,5 +32,3 @@ use Mix.Config
 config :telepath, ecto_repos: [Telepath.Repo]
 
 config :telepath, Telepath.Repo, adapter: EctoMnesia.Adapter
-
-config :mnesia, :dir, 'priv/data/mnesia'
