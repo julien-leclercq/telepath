@@ -9,6 +9,7 @@ import UrlParser as Url
 type Route
     = TorrentList
     | Settings
+    | TrackList
 
 
 fromLocation : Location -> Maybe Route
@@ -22,6 +23,7 @@ route =
         [ Url.map TorrentList Url.top
         , Url.map TorrentList (Url.s "torrents")
         , Url.map Settings (Url.s "settings")
+        , Url.map TrackList (Url.s "tracks")
         ]
 
 
@@ -35,6 +37,9 @@ toString route =
 
                 Settings ->
                     [ "settings" ]
+
+                TrackList ->
+                    [ "tracks" ]
     in
         "#/" ++ String.join "/" pieces
 

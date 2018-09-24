@@ -7,14 +7,17 @@ import Navigation exposing (program)
 import Routes
 import Pages.Settings as SettingsPage
 import Pages.Torrents as TorrentsPage
+import Pages.Tracks as TracksPage
 import Views.Settings as Settings
 import Views.TorrentList.List as TorrentList
+import Views.TrackList as TrackList
 import View exposing (appLayout, errorDiv)
 
 
 type Page
     = TorrentListPage TorrentsPage.Model
     | SettingsPage SettingsPage.Model
+    | TrackListPage TracksPage.Model
     | ErrorPage (Maybe String)
 
 
@@ -68,6 +71,9 @@ mainView model =
         SettingsPage settingsModel ->
             renderApp settingsModel Settings.view SettingsMsg
 
+        TrackListPage tracksModel ->
+            renderApp tracksModel TrackList.view TracksMsg
+
         ErrorPage maybeErrorText ->
             renderApp maybeErrorText errorDiv identity
 
@@ -81,6 +87,8 @@ type Message
     | UrlChange Navigation.Location
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
+    | TracksMsg TracksPage.Msg
+    | TracksLoaded ( TracksPage.Model, TracksPage.Msg )
     | SettingsLoaded ( SettingsPage.Model, SettingsPage.Msg )
     | TorrentsLoaded (Result Http.Error TorrentsPage.Model)
 
@@ -132,6 +140,20 @@ updatePage page message model =
             in
                 ( { model | pageState = Loaded <| TorrentListPage newModel }, Cmd.map TorrentsMsg newMsg )
 
+        ( TracksLoaded ( trackListModel, tracksMsg ), _ ) ->
+            let
+                ( newTrackListModel, newTrackCmd ) =
+                    TracksPage.update tracksMsg trackListModel
+            in
+                ( { model | pageState = Loaded <| TrackListPage newTrackListModel }, Cmd.map TracksMsg newTrackCmd )
+
+        ( TracksMsg msg, TrackListPage subModel ) ->
+            let
+                ( newModel, newMsg ) =
+                    TracksPage.update msg subModel
+            in
+                ( { model | pageState = Loaded <| TrackListPage newModel }, Cmd.map TracksMsg newMsg )
+
         _ ->
             message
                 |> Debug.log "Unable to catch message :"
@@ -159,6 +181,17 @@ setRoute maybeRoute model =
             let
                 msg =
                     Cmd.map TorrentsLoaded TorrentsPage.init
+            in
+                ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
+
+        Just Routes.TrackList ->
+            let
+                msg =
+                    let
+                        ( model, cmd ) =
+                            TracksPage.init
+                    in
+                        Cmd.map (\msg -> TracksLoaded ( model, msg )) cmd
             in
                 ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 

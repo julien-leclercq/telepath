@@ -4,7 +4,8 @@ defmodule WebWeb.Api.TrackController do
   alias Kaur.Result
 
   def index(conn, params) do
-    Web.Track.list(params)
+    tracks = Web.Track.list(params)
+    tracks
     |> Result.either(
       fn reason -> json(conn, %{error: reason}) end,
       fn tracks ->
