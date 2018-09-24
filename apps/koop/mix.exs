@@ -34,11 +34,11 @@ defmodule FlacMetaReader.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:ecto, "~> 2.1.6"},
-      {:ecto_mnesia, "~> 0.9.1"},
       {:ffmpex, "~> 0.5.2"},
       {:kaur, "~> 1.1.0"},
 
+      # internal
+      {:db, in_umbrella: true},
       # Test only
       {:response_snapshot, "~> 1.0.0", only: [:test]},
 

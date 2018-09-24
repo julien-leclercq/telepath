@@ -21,4 +21,4 @@ erl_crash.dump
 
 **.DS_Store
 
-priv/data/**
+/priv/data/**

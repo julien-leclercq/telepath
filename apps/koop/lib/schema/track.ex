@@ -5,7 +5,7 @@ defmodule Koop.Schema.Track do
 
   alias Kaur.Result
 
-  alias Koop.Repo
+  alias DB.Repo
 
   schema "tracks" do
     field(:title, :string)
@@ -48,7 +48,7 @@ defmodule Koop.Schema.Track do
     |> Repo.get_by(filename: filename)
     |> Result.from_value()
     |> Result.or_else(fn _ ->
-      Koop.Repo.insert(track)
+      Repo.insert(track)
     end)
   end
 end
