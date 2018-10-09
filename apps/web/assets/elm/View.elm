@@ -1,12 +1,12 @@
 module View exposing (..)
 
-import Html exposing (Html, a, aside, div, header, li, nav, p, text, ul)
+import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, text, ul)
 import Html.Attributes as Attrs
 import Routes
 
 
-appLayout : Html msg -> Html msg
-appLayout view =
+appLayout : Html msg -> Html msg -> Html msg
+appLayout playerView view =
     div []
         [ navView
         , div [ Attrs.class "section" ]
@@ -15,6 +15,7 @@ appLayout view =
                 , view
                 ]
             ]
+        , playerView
         ]
 
 
@@ -49,6 +50,7 @@ menuView =
         ]
 
 
+errorDiv : Maybe String -> Html msg
 errorDiv maybeErrorText =
     let
         errorText =

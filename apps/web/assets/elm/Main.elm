@@ -8,6 +8,7 @@ import Routes
 import Pages.Settings as SettingsPage
 import Pages.Torrents as TorrentsPage
 import Pages.Tracks as TracksPage
+import PlayerPort exposing (playerView)
 import Views.Settings as Settings
 import Views.TorrentList.List as TorrentList
 import Views.TrackList as TrackList
@@ -27,7 +28,7 @@ type PageState
 
 
 type alias Model =
-    { pageState : PageState }
+    { pageState : PageState, playerState : PlayerPort.Model }
 
 
 init : Navigation.Location -> ( Model, Cmd Message )
@@ -37,6 +38,7 @@ init location =
             location
         )
         { pageState = Loaded <| ErrorPage Nothing
+        , playerState = Nothing
         }
 
 
@@ -54,28 +56,36 @@ getPage pageState =
 -- View
 
 
-renderApp : pageModel -> (pageModel -> Html pageMsg) -> (pageMsg -> Message) -> Html Message
-renderApp pageModel pageView msgMapper =
-    pageModel
-        |> pageView
-        |> appLayout
-        |> Html.map msgMapper
+renderApp : PlayerPort.Model -> pageModel -> (pageModel -> Html pageMsg) -> (pageMsg -> Message) -> Html Message
+renderApp playerModel pageModel pageView msgMapper =
+    let
+        mappedPlayerView =
+            Html.map PlayerMsg <| playerView playerModel
+    in
+        pageModel
+            |> pageView
+            |> Html.map msgMapper
+            |> appLayout mappedPlayerView
 
 
 mainView : Model -> Html Message
 mainView model =
-    case getPage model.pageState of
-        TorrentListPage torrentsModel ->
-            renderApp torrentsModel TorrentList.view TorrentsMsg
+    let
+        renderAppWithPlayer =
+            renderApp model.playerState
+    in
+        case getPage model.pageState of
+            TorrentListPage torrentsModel ->
+                renderAppWithPlayer torrentsModel TorrentList.view TorrentsMsg
 
-        SettingsPage settingsModel ->
-            renderApp settingsModel Settings.view SettingsMsg
+            SettingsPage settingsModel ->
+                renderAppWithPlayer settingsModel Settings.view SettingsMsg
 
-        TrackListPage tracksModel ->
-            renderApp tracksModel TrackList.view TracksMsg
+            TrackListPage tracksModel ->
+                renderAppWithPlayer tracksModel TrackList.view TracksMsg
 
-        ErrorPage maybeErrorText ->
-            renderApp maybeErrorText errorDiv identity
+            ErrorPage maybeErrorText ->
+                renderAppWithPlayer maybeErrorText errorDiv identity
 
 
 
@@ -84,6 +94,7 @@ mainView model =
 
 type Message
     = None
+    | PlayerMsg PlayerPort.Msg
     | UrlChange Navigation.Location
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
@@ -142,17 +153,43 @@ updatePage page message model =
 
         ( TracksLoaded ( trackListModel, tracksMsg ), _ ) ->
             let
-                ( newTrackListModel, newTrackCmd ) =
+                ( ( newTrackListModel, newTrackCmd ), trackExtMsg ) =
                     TracksPage.update tracksMsg trackListModel
             in
                 ( { model | pageState = Loaded <| TrackListPage newTrackListModel }, Cmd.map TracksMsg newTrackCmd )
 
         ( TracksMsg msg, TrackListPage subModel ) ->
+            --  weird code. should refacto
             let
-                ( newModel, newMsg ) =
+                ( ( newTracksModel, newTracksMsg ), tracksExtMsg ) =
                     TracksPage.update msg subModel
+
+                newTrackMsg =
+                    Cmd.map TracksMsg newTracksMsg
+
+                newModel =
+                    { model | pageState = Loaded <| TrackListPage newTracksModel }
+
+                ( newPlayerState, newMainMsg ) =
+                    case tracksExtMsg of
+                        TracksPage.NoOp ->
+                            ( model.playerState, Cmd.none )
+
+                        TracksPage.PlayerMsg msg ->
+                            let
+                                ( newPlayerState, newPlayerCmd ) =
+                                    PlayerPort.update model.playerState msg
+                            in
+                                ( newPlayerState, Cmd.map PlayerMsg newPlayerCmd )
             in
-                ( { model | pageState = Loaded <| TrackListPage newModel }, Cmd.map TracksMsg newMsg )
+                ( { newModel | playerState = newPlayerState }, Cmd.batch [ newTrackMsg, newMainMsg ] )
+
+        ( PlayerMsg msg, _ ) ->
+            let
+                ( newPlayerState, newPlayerCmd ) =
+                    PlayerPort.update model.playerState msg
+            in
+                ( { model | playerState = newPlayerState }, Cmd.map PlayerMsg newPlayerCmd )
 
         _ ->
             message
@@ -206,5 +243,10 @@ main =
         { init = init
         , update = update
         , view = mainView
-        , subscriptions = (\_ -> Sub.none)
+        , subscriptions =
+            (\_ ->
+                PlayerPort.playerCmdIn PlayerPort.TimeChange
+                    |> Sub.map PlayerMsg
+             -- Sub.none
+            )
         }
