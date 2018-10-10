@@ -1,11 +1,11 @@
-module Views.TorrentList.List exposing (..)
+module Views.TorrentList.List exposing (listHeader, view)
 
 import Data.Torrent exposing (Torrent)
 import Html exposing (Html, div, text)
 import Html.Attributes as Attrs
 import Html.Events exposing (onClick)
-import Views.TorrentList.Item as Item
 import Pages.Torrents as TorrentsPage
+import Views.TorrentList.Item as Item
 
 
 listHeader : Html TorrentsPage.Msg
@@ -21,4 +21,4 @@ listHeader =
 
 view : List Torrent -> Html TorrentsPage.Msg
 view torrents =
-    div [ Attrs.class "column" ] (listHeader :: (List.map Item.view torrents))
+    div [ Attrs.class "column" ] (listHeader :: List.map Item.view torrents)

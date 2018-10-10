@@ -1,7 +1,7 @@
 module Data.Track exposing (Track, encode, trackDecoder)
 
-import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Decode as Decode exposing (int, string)
+import Json.Decode.Pipeline exposing (decode, optional, required)
 import Json.Encode as Encode
 
 

@@ -1,11 +1,10 @@
-port module PlayerPort exposing (..)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
-import Json.Encode as Serial
 import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Data.Track as Track
+import Json.Encode as Serial
 
 
 type PlayState
@@ -38,14 +37,14 @@ playerView model =
                 Just ( track, playstate, time ) ->
                     ( track.title, playStateToString playstate, toString time )
     in
-        div [ Attrs.class "level", Attrs.style [ ( "position", "fixed" ), ( "bottom", "0px" ), ( "width", "100%" ), ( "background", "white" ) ] ]
-            [ button [ Events.onClick <| Send TogglePlay ]
-                [ text "▶️"
-                ]
-            , span [] [ text track ]
-            , span [] [ text time ]
-            , span [] [ text playstate ]
+    div [ Attrs.class "level", Attrs.style "position" "fixed", Attrs.style "bottom" "0px", Attrs.style "width" "100%", Attrs.style "background" "white" ]
+        [ button [ Events.onClick <| Send TogglePlay ]
+            [ text "▶️"
             ]
+        , span [] [ text track ]
+        , span [] [ text time ]
+        , span [] [ text playstate ]
+        ]
 
 
 type PortOutMsg

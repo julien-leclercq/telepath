@@ -1,4 +1,4 @@
-module Pages.Tracks exposing (..)
+module Pages.Tracks exposing (ExtMsg(..), Model, Msg(..), init, update)
 
 import Data.Track exposing (Track)
 import PlayerPort
@@ -34,6 +34,6 @@ update msg model =
         PlayTrack track ->
             let
                 trackRoute =
-                    "api/tracks/" ++ (toString track.id)
+                    "api/tracks/" ++ toString track.id
             in
-                ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
+            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )

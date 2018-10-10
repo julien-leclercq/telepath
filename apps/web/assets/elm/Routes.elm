@@ -1,4 +1,4 @@
-module Routes exposing (..)
+module Routes exposing (Route(..), fromLocation, href, route, toString)
 
 import Html
 import Html.Attributes as Attrs
@@ -41,7 +41,7 @@ toString route =
                 TrackList ->
                     [ "tracks" ]
     in
-        "#/" ++ String.join "/" pieces
+    "#/" ++ String.join "/" pieces
 
 
 href : Route -> Html.Attribute msg

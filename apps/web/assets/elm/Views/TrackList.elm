@@ -4,8 +4,8 @@ import Data.Track exposing (Track)
 import Html exposing (div, text)
 import Html.Events as Events
 import Pages.Tracks exposing (..)
-import RemoteData
 import PlayerPort
+import RemoteData
 
 
 view : Model -> Html.Html Msg

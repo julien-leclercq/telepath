@@ -1,8 +1,8 @@
-module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, nameOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxListDecoder, seedboxEncoder, toggleAuth, userNameOfAuth)
+module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, nameOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxEncoder, seedboxListDecoder, toggleAuth, userNameOfAuth)
 
+import Json.Decode as Decode exposing (andThen, bool, fail, field, int, list, nullable, string)
+import Json.Decode.Pipeline exposing (optional, required, succeed)
 import Json.Encode as Encode
-import Json.Decode as Decode exposing (andThen, bool, int, fail, field, list, nullable, string)
-import Json.Decode.Pipeline exposing (decode, optional, required)
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
 
@@ -41,7 +41,7 @@ seedboxListDecoder =
 
 seedboxDecoder : Decode.Decoder Seedbox
 seedboxDecoder =
-    decode Seedbox
+    succeed Seedbox
         |> required "accessible" bool
         |> optional "auth" authDecoder NoAuth
         |> required "host" string
@@ -56,7 +56,7 @@ authDecoder =
         basicAuth u p =
             BasicAuth ( u, p )
     in
-        decode basicAuth
+        succeed basicAuth
             |> required "username" string
             |> required "password" string
 

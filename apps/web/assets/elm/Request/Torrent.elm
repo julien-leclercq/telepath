@@ -1,6 +1,6 @@
 module Request.Torrent exposing (list)
 
-import Data.Torrent exposing (Torrent, File, torrentListDecoder)
+import Data.Torrent exposing (File, Torrent, torrentListDecoder)
 import Http
 import Json.Decode exposing (field)
 

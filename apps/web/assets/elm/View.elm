@@ -1,4 +1,4 @@
-module View exposing (..)
+module View exposing (appLayout, errorDiv, menuView, navView)
 
 import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, text, ul)
 import Html.Attributes as Attrs
@@ -61,6 +61,6 @@ errorDiv maybeErrorText =
                 Just errorText ->
                     errorText
     in
-        div
-            []
-            [ p [] [ text errorText ] ]
+    div
+        []
+        [ p [] [ text errorText ] ]

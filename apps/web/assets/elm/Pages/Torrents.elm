@@ -1,4 +1,4 @@
-module Pages.Torrents exposing (..)
+module Pages.Torrents exposing (Model, Msg(..), SortField(..), init, sort, update)
 
 import Data.Torrent exposing (..)
 import Http
