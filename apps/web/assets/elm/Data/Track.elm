@@ -1,7 +1,7 @@
 module Data.Track exposing (Track, encode, trackDecoder)
 
-import Json.Decode as Decode exposing (int, string)
-import Json.Decode.Pipeline exposing (decode, optional, required)
+import Json.Decode as Decode exposing (int, string, succeed)
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
@@ -16,7 +16,7 @@ type alias Track =
 
 trackDecoder : Decode.Decoder Track
 trackDecoder =
-    decode Track
+    succeed Track
         |> optional "title" string ""
         |> optional "album" string ""
         |> optional "artist" string ""
@@ -28,5 +28,5 @@ encode : Track -> Encode.Value
 encode track =
     Encode.object
         [ ( "id", Encode.int track.id )
-        , ( "route", Encode.string <| "api/tracks/" ++ toString track.id )
+        , ( "route", Encode.string <| "api/tracks/" ++ String.fromInt track.id )
         ]

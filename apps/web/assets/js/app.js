@@ -5,7 +5,8 @@ import Elm from '../elm/Main.elm'
 let track
 let playing = false
 const container = document.querySelector("#app")
-const app = Elm.Main.embed(container)
+console.log('elm main', Elm)
+const app = Elm.Elm.Main.init({ node: container, flags: "" })
 console.log(app)
 
 app.ports.playerCmdOut.subscribe(function (ctrl) {

@@ -2,8 +2,8 @@ module Routes exposing (Route(..), fromLocation, href, route, toString)
 
 import Html
 import Html.Attributes as Attrs
-import Navigation exposing (Location)
-import UrlParser as Url
+import Url
+import Url.Parser as UrlParser
 
 
 type Route
@@ -12,26 +12,27 @@ type Route
     | TrackList
 
 
-fromLocation : Location -> Maybe Route
+fromLocation : Url.Url -> Maybe Route
 fromLocation =
-    Url.parseHash route
+    UrlParser.parse route
 
 
-route : Url.Parser (Route -> a) a
+route : UrlParser.Parser (Route -> a) a
 route =
-    Url.oneOf
-        [ Url.map TorrentList Url.top
-        , Url.map TorrentList (Url.s "torrents")
-        , Url.map Settings (Url.s "settings")
-        , Url.map TrackList (Url.s "tracks")
+    UrlParser.oneOf
+        -- [ UrlParser.map TorrentList UrlParser.top
+        -- , UrlParser.map TorrentList (UrlParser.s "/torrents")
+        [ UrlParser.map TorrentList (UrlParser.s "/torrents")
+        , UrlParser.map Settings (UrlParser.s "/settings")
+        , UrlParser.map TrackList (UrlParser.s "/tracks")
         ]
 
 
 toString : Route -> String
-toString route =
+toString path =
     let
         pieces =
-            case route of
+            case path of
                 TorrentList ->
                     [ "torrents" ]
 
@@ -41,9 +42,9 @@ toString route =
                 TrackList ->
                     [ "tracks" ]
     in
-    "#/" ++ String.join "/" pieces
+        "#/" ++ String.join "/" pieces
 
 
 href : Route -> Html.Attribute msg
-href route =
-    Attrs.href <| toString route
+href path =
+    Attrs.href <| toString path

@@ -1,7 +1,7 @@
 module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, nameOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxEncoder, seedboxListDecoder, toggleAuth, userNameOfAuth)
 
-import Json.Decode as Decode exposing (andThen, bool, fail, field, int, list, nullable, string)
-import Json.Decode.Pipeline exposing (optional, required, succeed)
+import Json.Decode as Decode exposing (andThen, bool, fail, field, int, list, nullable, succeed, string)
+import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)

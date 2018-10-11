@@ -1,4 +1,4 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), nothing, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, span, text, ul)
@@ -26,6 +26,11 @@ type alias Model =
     Maybe ( Track.Track, PlayState, Float )
 
 
+nothing : Model
+nothing =
+    Nothing
+
+
 playerView : Model -> Html Msg
 playerView model =
     let
@@ -34,17 +39,17 @@ playerView model =
                 Nothing ->
                     ( "", "", "" )
 
-                Just ( track, playstate, time ) ->
-                    ( track.title, playStateToString playstate, toString time )
+                Just ( currentTrack, currentPlaystate, currentTime ) ->
+                    ( currentTrack.title, playStateToString currentPlaystate, String.fromFloat currentTime )
     in
-    div [ Attrs.class "level", Attrs.style "position" "fixed", Attrs.style "bottom" "0px", Attrs.style "width" "100%", Attrs.style "background" "white" ]
-        [ button [ Events.onClick <| Send TogglePlay ]
-            [ text "▶️"
+        div [ Attrs.class "level", Attrs.style "position" "fixed", Attrs.style "bottom" "0px", Attrs.style "width" "100%", Attrs.style "background" "white" ]
+            [ button [ Events.onClick <| Send TogglePlay ]
+                [ text "▶️"
+                ]
+            , span [] [ text track ]
+            , span [] [ text time ]
+            , span [] [ text playstate ]
             ]
-        , span [] [ text track ]
-        , span [] [ text time ]
-        , span [] [ text playstate ]
-        ]
 
 
 type PortOutMsg

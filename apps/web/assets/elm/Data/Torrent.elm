@@ -6,8 +6,9 @@ import Json.Decode
         , int
         , list
         , string
+        , succeed
         )
-import Json.Decode.Pipeline exposing ( required, succeed)
+import Json.Decode.Pipeline exposing (required)
 
 
 type alias Torrent =
@@ -30,7 +31,7 @@ type alias File =
 
 torrentDecoder : Decoder Torrent
 torrentDecoder =
-    Torrent succeed
+    succeed Torrent
         |> required "id" int
         |> required "seedbox_id" string
         |> required "name" string
@@ -46,7 +47,7 @@ torrentListDecoder =
 
 fileDecoder : Decoder File
 fileDecoder =
-    File, succeed
+    succeed File
         |> required "name" string
         |> required "bytesCompleted" int
         |> required "length" int

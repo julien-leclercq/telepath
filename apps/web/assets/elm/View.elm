@@ -53,14 +53,12 @@ menuView =
 errorDiv : Maybe String -> Html msg
 errorDiv maybeErrorText =
     let
-        errorText =
-            case maybeErrorText of
-                Nothing ->
-                    "You have encountered an error OR maybe this page is not implemented yet"
+        defaultErrorText =
+            "You have encountered an error OR maybe this page is not implemented yet"
 
-                Just errorText ->
-                    errorText
+        errorText =
+            Maybe.withDefault defaultErrorText maybeErrorText
     in
-    div
-        []
-        [ p [] [ text errorText ] ]
+        div
+            []
+            [ p [] [ text errorText ] ]

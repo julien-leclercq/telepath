@@ -34,6 +34,6 @@ update msg model =
         PlayTrack track ->
             let
                 trackRoute =
-                    "api/tracks/" ++ toString track.id
+                    "api/tracks/" ++ String.fromInt track.id
             in
-            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
+                ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
