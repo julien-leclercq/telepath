@@ -1,7 +1,7 @@
 port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), nothing, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
-import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, span, text, ul)
+import Html exposing (Html, a, aside, audio, button, div, header,i, li, nav, p, source, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
 import Json.Encode as Serial
@@ -34,21 +34,21 @@ nothing =
 playerView : Model -> Html Msg
 playerView model =
     let
-        ( track, playstate, time ) =
+        ( track, time ) =
             case model of
                 Nothing ->
-                    ( "", "", "" )
+                    ( "Choose a track !", "" )
 
                 Just ( currentTrack, currentPlaystate, currentTime ) ->
-                    ( currentTrack.title, playStateToString currentPlaystate, String.fromFloat currentTime )
+                    ( currentTrack.title, String.fromFloat currentTime )
     in
-        div [ Attrs.class "level", Attrs.style "position" "fixed", Attrs.style "bottom" "0px", Attrs.style "width" "100%", Attrs.style "background" "white" ]
-            [ button [ Events.onClick <| Send TogglePlay ]
-                [ text "▶️"
-                ]
-            , span [] [ text track ]
-            , span [] [ text time ]
-            , span [] [ text playstate ]
+        div [ Attrs.id "player"
+            ,Attrs.class "level"
+            ]
+            [ div [Attrs.class "player-controls column"] [
+                    button [Attrs.class "icon", Events.onClick <| Send TogglePlay ] [i [Attrs.class "fas fa-play"] [] ]]
+            , span [Attrs.class "column"] [ text track ]
+            , span [Attrs.class "column"] [ text time ]
             ]
 
 
