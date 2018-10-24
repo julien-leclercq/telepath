@@ -13,18 +13,17 @@ type Route
 
 
 fromLocation : Url.Url -> Maybe Route
-fromLocation =
-    UrlParser.parse route
+fromLocation url =
+    UrlParser.parse route url
 
 
-route : UrlParser.Parser (Route -> a) a
+route : UrlParser.Parser (Route -> Route) Route
 route =
     UrlParser.oneOf
-        -- [ UrlParser.map TorrentList UrlParser.top
-        -- , UrlParser.map TorrentList (UrlParser.s "/torrents")
-        [ UrlParser.map TorrentList (UrlParser.s "/torrents")
-        , UrlParser.map Settings (UrlParser.s "/settings")
-        , UrlParser.map TrackList (UrlParser.s "/tracks")
+        [ UrlParser.map TorrentList UrlParser.top
+        , UrlParser.map TorrentList (UrlParser.s "torrents")
+        , UrlParser.map Settings (UrlParser.s "settings")
+        , UrlParser.map TrackList (UrlParser.s "tracks")
         ]
 
 
@@ -42,7 +41,7 @@ toString path =
                 TrackList ->
                     [ "tracks" ]
     in
-        "#/" ++ String.join "/" pieces
+        String.join "/" pieces
 
 
 href : Route -> Html.Attribute msg
