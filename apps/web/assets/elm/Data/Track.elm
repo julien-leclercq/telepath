@@ -1,14 +1,14 @@
 module Data.Track exposing (Track, encode, trackDecoder)
 
-import Json.Decode as Decode exposing (int, string, succeed)
+import Json.Decode as Decode exposing (int, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
 
 type alias Track =
-    { title : String
-    , album : String
-    , artist : String
+    { title : Maybe String
+    , album : Maybe String
+    , artist : Maybe String
     , id : Int
     , path : String
     }
@@ -17,9 +17,9 @@ type alias Track =
 trackDecoder : Decode.Decoder Track
 trackDecoder =
     succeed Track
-        |> optional "title" string ""
-        |> optional "album" string ""
-        |> optional "artist" string ""
+        |> required "title" (nullable string)
+        |> required "album" (nullable string)
+        |> required "artist" (nullable string)
         |> required "id" int
         |> required "path" string
 

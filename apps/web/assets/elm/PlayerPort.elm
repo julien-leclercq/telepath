@@ -23,7 +23,7 @@ playStateToString state =
 
 
 type alias Model =
-    Maybe ( Track.Track, PlayState, Float )
+    Maybe ( Track.Track, PlayState, String )
 
 
 nothing : Model
@@ -34,13 +34,14 @@ nothing =
 playerView : Model -> Html Msg
 playerView model =
     let
+        displayTitle = Maybe.withDefault "Unknown track"
         ( track, time ) =
             case model of
                 Nothing ->
                     ( "Choose a track !", "" )
 
                 Just ( currentTrack, currentPlaystate, currentTime ) ->
-                    ( currentTrack.title, String.fromFloat currentTime )
+                    ( displayTitle currentTrack.title, currentTime )
     in
         div [ Attrs.id "player"
             ,Attrs.class "level"
@@ -92,13 +93,18 @@ update model msg =
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            ( Just ( track, OnPlay, 0 ), sendPlayerCmd (PlayTrack track) )
+            ( Just ( track, OnPlay, stringifyTime 0 ), sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
             model
-                |> Maybe.map (\( x, y, _ ) -> ( x, y, time ))
+                |> Maybe.map (\( x, y, _ ) -> ( x, y, stringifyTime time ))
                 |> (\m -> ( m, Cmd.none ))
 
+stringifyTime receivedTime =
+    let
+        seconds =
+            floor receivedTime
+    in String.fromInt seconds
 
 playTrack : Track -> Msg
 playTrack track =

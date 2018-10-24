@@ -1,7 +1,8 @@
 module Views.TrackList exposing (view)
 
 import Data.Track exposing (Track)
-import Html exposing (div, text)
+import Html exposing (div, span, table, tbody, td, th, thead,  text, tr)
+import Html.Attributes as Attrs
 import Html.Events as Events
 import Pages.Tracks exposing (..)
 import PlayerPort
@@ -13,7 +14,18 @@ view model =
     div []
         (case model of
             RemoteData.Success tracks ->
-                List.map trackView tracks
+                [
+                    table [Attrs.class "table"]
+                    [ thead []
+                        [tr []
+                            [ th [] [text "title"]
+                            , th [] [text "artist"]
+                            , th [] [text "album"]]
+                        ]
+                    , tbody [] (List.map trackView tracks)
+                    ]
+                ]
+
 
             _ ->
                 [ text "either the data is loading or an error occured " ]
@@ -22,4 +34,14 @@ view model =
 
 trackView : Track -> Html.Html Msg
 trackView track =
-    div [] [ div [ Events.onClick <| PlayTrack track ] [ text track.title ] ]
+    let
+        displayInfo maybeInfo =
+            case maybeInfo of
+                Nothing -> span [Attrs.style "color" "red"] [text "missing track title"]
+                Just title -> span [] [text title]
+    in
+    tr [ Events.onClick <| PlayTrack track ] [
+        td [] [ displayInfo track.title ]
+        , td [] [ displayInfo track.artist]
+        , td [] [displayInfo track.album]
+    ]
