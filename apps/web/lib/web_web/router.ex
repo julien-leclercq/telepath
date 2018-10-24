@@ -13,13 +13,6 @@ defmodule WebWeb.Router do
     plug(:accepts, ["json"])
   end
 
-  scope "/", WebWeb do
-    # Use the default browser stack
-    pipe_through(:browser)
-
-    get("/", PageController, :index)
-  end
-
   # Other scopes may use custom stacks.
   scope "/api", WebWeb do
     pipe_through(:api)
@@ -35,5 +28,12 @@ defmodule WebWeb.Router do
 
     get("/tracks", Api.TrackController, :index)
     get("/tracks/:track_id", Api.TrackController, :get_file)
+  end
+
+  scope "/", WebWeb do
+    # Use the default browser stack
+    pipe_through(:browser)
+
+    get("/*_application_route", PageController, :index)
   end
 end
