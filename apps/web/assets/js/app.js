@@ -29,10 +29,15 @@ function swapTrack(trackPath) {
   }
   track = new Audio(trackPath)
   track.ontimeupdate = (e) => handleTimeChange(e.target)
+  track.onpause = (e) => handlePause(e.target)
   track.play()
   playing = true
 }
 
 function handleTimeChange(track) {
   app.ports.playerCmdIn.send(track.currentTime)
+}
+
+function handlePause(track) {
+  track.ended ? app.ports.playerCmdIn.send('end') : app.ports.playerCmdIn.send('pause')
 }
