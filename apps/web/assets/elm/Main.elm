@@ -47,11 +47,11 @@ init _ location navKey =
         _ =
             Debug.log "debugging routing" location
     in
-        setRoute
-            (Routes.fromLocation
-                location
-            )
-            (baseModel navKey)
+    setRoute
+        (Routes.fromLocation
+            location
+        )
+        (baseModel navKey)
 
 
 getPage : PageState -> Page
@@ -74,10 +74,10 @@ renderApp playerModel pageModel pageView msgMapper =
         mappedPlayerView =
             Html.map PlayerMsg <| playerView playerModel
     in
-        pageModel
-            |> pageView
-            |> Html.map msgMapper
-            |> appLayout mappedPlayerView
+    pageModel
+        |> pageView
+        |> Html.map msgMapper
+        |> appLayout mappedPlayerView
 
 
 mainView : Model -> Html Message
@@ -86,18 +86,18 @@ mainView model =
         renderAppWithPlayer =
             renderApp model.playerState
     in
-        case getPage model.pageState of
-            TorrentListPage torrentsModel ->
-                renderAppWithPlayer torrentsModel TorrentList.view TorrentsMsg
+    case getPage model.pageState of
+        TorrentListPage torrentsModel ->
+            renderAppWithPlayer torrentsModel TorrentList.view TorrentsMsg
 
-            SettingsPage settingsModel ->
-                renderAppWithPlayer settingsModel Settings.view SettingsMsg
+        SettingsPage settingsModel ->
+            renderAppWithPlayer settingsModel Settings.view SettingsMsg
 
-            TrackListPage tracksModel ->
-                renderAppWithPlayer tracksModel TrackList.view TracksMsg
+        TrackListPage tracksModel ->
+            renderAppWithPlayer tracksModel TrackList.view TracksMsg
 
-            ErrorPage maybeErrorText ->
-                renderAppWithPlayer maybeErrorText errorDiv identity
+        ErrorPage maybeErrorText ->
+            renderAppWithPlayer maybeErrorText errorDiv identity
 
 
 
@@ -134,25 +134,26 @@ updatePage page message model =
         ( ClickedLink urlRequest, _ ) ->
             case urlRequest of
                 Browser.External url ->
-                        (model, Navigation.load url)
+                    ( model, Navigation.load url )
+
                 Browser.Internal url ->
-                        (model, Navigation.pushUrl model.navKey (Url.toString url))
+                    ( model, Navigation.pushUrl model.navKey (Url.toString url) )
 
         ( SettingsMsg msg, SettingsPage submodel ) ->
             let
                 ( ( newSubmodel, cmd ), msgFromPage ) =
                     SettingsPage.update msg submodel
             in
-                case msgFromPage of
-                    SettingsPage.NoOp ->
-                        ( { model | pageState = Loaded <| SettingsPage newSubmodel }, Cmd.map SettingsMsg cmd )
+            case msgFromPage of
+                SettingsPage.NoOp ->
+                    ( { model | pageState = Loaded <| SettingsPage newSubmodel }, Cmd.map SettingsMsg cmd )
 
         ( SettingsLoaded ( settingsModel, settingsMessage ), _ ) ->
             let
                 ( ( newSettingsModel, newSettingsMsg ), noOp ) =
                     SettingsPage.update settingsMessage settingsModel
             in
-                ( { model | pageState = Loaded <| SettingsPage newSettingsModel }, Cmd.map SettingsMsg newSettingsMsg )
+            ( { model | pageState = Loaded <| SettingsPage newSettingsModel }, Cmd.map SettingsMsg newSettingsMsg )
 
         ( TorrentsLoaded (Ok torrentsList), _ ) ->
             ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
@@ -162,21 +163,21 @@ updatePage page message model =
                 _ =
                     Debug.log "error loading torrents" error
             in
-                ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
+            ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
 
         ( TorrentsMsg msg, TorrentListPage subModel ) ->
             let
                 ( newModel, newMsg ) =
                     TorrentsPage.update msg subModel
             in
-                ( { model | pageState = Loaded <| TorrentListPage newModel }, Cmd.map TorrentsMsg newMsg )
+            ( { model | pageState = Loaded <| TorrentListPage newModel }, Cmd.map TorrentsMsg newMsg )
 
         ( TracksLoaded ( trackListModel, tracksMsg ), _ ) ->
             let
                 ( ( newTrackListModel, newTrackCmd ), trackExtMsg ) =
                     TracksPage.update tracksMsg trackListModel
             in
-                ( { model | pageState = Loaded <| TrackListPage newTrackListModel }, Cmd.map TracksMsg newTrackCmd )
+            ( { model | pageState = Loaded <| TrackListPage newTrackListModel }, Cmd.map TracksMsg newTrackCmd )
 
         ( TracksMsg msg, TrackListPage subModel ) ->
             --  weird code. should refacto
@@ -200,16 +201,16 @@ updatePage page message model =
                                 ( updatedPlayerState, newPlayerCmd ) =
                                     PlayerPort.update model.playerState playerMsg
                             in
-                                ( updatedPlayerState, Cmd.map PlayerMsg newPlayerCmd )
+                            ( updatedPlayerState, Cmd.map PlayerMsg newPlayerCmd )
             in
-                ( { newModel | playerState = newPlayerState }, Cmd.batch [ newTrackMsg, newMainMsg ] )
+            ( { newModel | playerState = newPlayerState }, Cmd.batch [ newTrackMsg, newMainMsg ] )
 
         ( PlayerMsg msg, _ ) ->
             let
                 ( newPlayerState, newPlayerCmd ) =
                     PlayerPort.update model.playerState msg
             in
-                ( { model | playerState = newPlayerState }, Cmd.map PlayerMsg newPlayerCmd )
+            ( { model | playerState = newPlayerState }, Cmd.map PlayerMsg newPlayerCmd )
 
         _ ->
             message
@@ -230,16 +231,16 @@ setRoute maybeRoute model =
                         ( settingsModel, cmd ) =
                             SettingsPage.init
                     in
-                        Cmd.map (\initMsg -> SettingsLoaded ( settingsModel, initMsg )) cmd
+                    Cmd.map (\initMsg -> SettingsLoaded ( settingsModel, initMsg )) cmd
             in
-                ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
+            ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
         Just Routes.TorrentList ->
             let
                 msg =
                     Cmd.map TorrentsLoaded TorrentsPage.init
             in
-                ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
+            ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
         Just Routes.TrackList ->
             let
@@ -248,9 +249,9 @@ setRoute maybeRoute model =
                         ( trackListModel, cmd ) =
                             TracksPage.init
                     in
-                        Cmd.map (\initMsg -> TracksLoaded ( trackListModel, initMsg )) cmd
+                    Cmd.map (\initMsg -> TracksLoaded ( trackListModel, initMsg )) cmd
             in
-                ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
+            ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
 
 
@@ -278,10 +279,9 @@ main : Platform.Program String Model Message
 main =
     let
         subscriptions =
-            (\_ ->
+            \_ ->
                 PlayerPort.playerCmdIn PlayerPort.TimeChange
                     |> Sub.map PlayerMsg
-            )
 
         -- Sub.none
         -- Browser.application UrlChange
@@ -296,19 +296,19 @@ main =
         --             Internal url ->
         --                 Browser.Navigation.pushUrl
     in
-        -- Browser.application
-        --     { init = init
-        --     , update = update
-        --     , view = view
-        --     , subscriptions = subscriptions
-        --     , onUrlChange = onUrlChange
-        --     , onUrlRequest = onUrlRequest
-        --     }
-        Browser.application
-            { init = init
-            , update = update
-            , view = view
-            , subscriptions = subscriptions
-            , onUrlChange = onUrlChange
-            , onUrlRequest = onUrlRequest
-            }
+    -- Browser.application
+    --     { init = init
+    --     , update = update
+    --     , view = view
+    --     , subscriptions = subscriptions
+    --     , onUrlChange = onUrlChange
+    --     , onUrlRequest = onUrlRequest
+    --     }
+    Browser.application
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        , onUrlChange = onUrlChange
+        , onUrlRequest = onUrlRequest
+        }

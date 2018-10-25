@@ -45,7 +45,7 @@ tab maybeMsg content =
                 Just msg ->
                     [ Events.onClick msg ]
     in
-        li attrs [ a [] content ]
+    li attrs [ a [] content ]
 
 
 seedboxTabs : Page.Model -> List (Html Page.Msg)
@@ -54,27 +54,29 @@ seedboxTabs model =
         name box =
             if box.name /= "" then
                 box.name
+
             else
                 .host box
     in
-        case model.seedboxes of
-            RemoteData.Success seedboxes ->
-                case model.state of
-                    Page.AddSeedbox ( _, _ ) ->
-                        List.map (\box -> tab (Just <| Page.GoToConfig box) [ text <| name box ]) seedboxes
+    case model.seedboxes of
+        RemoteData.Success seedboxes ->
+            case model.state of
+                Page.AddSeedbox ( _, _ ) ->
+                    List.map (\box -> tab (Just <| Page.GoToConfig box) [ text <| name box ]) seedboxes
 
-                    Page.ConfigSeedbox ( curBox, _, _ ) ->
-                        List.map
-                            (\box ->
-                                if curBox == box then
-                                    tab Nothing [ text <| name box ]
-                                else
-                                    tab (Just <| Page.GoToConfig box) [ text <| name box ]
-                            )
-                            seedboxes
+                Page.ConfigSeedbox ( curBox, _, _ ) ->
+                    List.map
+                        (\box ->
+                            if curBox == box then
+                                tab Nothing [ text <| name box ]
 
-            _ ->
-                []
+                            else
+                                tab (Just <| Page.GoToConfig box) [ text <| name box ]
+                        )
+                        seedboxes
+
+        _ ->
+            []
 
 
 addSeedboxTab : Page.Model -> Html Page.Msg
@@ -88,7 +90,7 @@ addSeedboxTab model =
                 _ ->
                     Just Page.FreshSeedbox
     in
-        tab msg [ text "Add +" ]
+    tab msg [ text "Add +" ]
 
 
 tabs : Page.Model -> Html Page.Msg
@@ -112,11 +114,11 @@ settingsForm model =
                 )
             ]
     in
-        model
-            |> stateOfModel.get
-            |> pendingSeedboxOfState.get
-            |> formBody
-            |> div [ Attrs.class "form" ]
+    model
+        |> stateOfModel.get
+        |> pendingSeedboxOfState.get
+        |> formBody
+        |> div [ Attrs.class "form" ]
 
 
 errorDiv : Page.Model -> Html Page.Msg
@@ -130,17 +132,17 @@ errorDiv model =
                 errorText =
                     "there is an error"
             in
-                div [ Attrs.class "notification is-danger" ] [ text errorText ]
+            div [ Attrs.class "notification is-danger" ] [ text errorText ]
     in
-        case model.state of
-            Page.AddSeedbox ( _, RemoteData.Failure _ ) ->
-                error ()
+    case model.state of
+        Page.AddSeedbox ( _, RemoteData.Failure _ ) ->
+            error ()
 
-            Page.ConfigSeedbox ( _, _, RemoteData.Failure _ ) ->
-                error ()
+        Page.ConfigSeedbox ( _, _, RemoteData.Failure _ ) ->
+            error ()
 
-            _ ->
-                noError
+        _ ->
+            noError
 
 
 hostField : Page.Model -> Html Page.Msg
@@ -160,13 +162,13 @@ hostField model =
                 firstError :: otherErrors ->
                     ( "input is-danger", p [ Attrs.class "help is-danger" ] (List.foldl (\error errors -> text error :: (br [] [] :: errors)) [ text firstError ] otherErrors) )
     in
-        div [ Attrs.class "field" ]
-            [ label [ Attrs.class "label" ] [ text "Host" ]
-            , div [ Attrs.class "control" ]
-                [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.host, Events.onInput (Page.input Page.Host) ] []
-                ]
-            , help
+    div [ Attrs.class "field" ]
+        [ label [ Attrs.class "label" ] [ text "Host" ]
+        , div [ Attrs.class "control" ]
+            [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.host, Events.onInput (Page.input Page.Host) ] []
             ]
+        , help
+        ]
 
 
 nameField : Page.Model -> Html Page.Msg
@@ -175,10 +177,10 @@ nameField model =
         box =
             model |> stateOfModel.get |> pendingSeedboxOfState.get
     in
-        div [ Attrs.class "field" ]
-            [ label [ Attrs.class "label" ] [ text "Name of the Seedbox" ]
-            , input [ Attrs.class "input", Attrs.value box.name, Events.onInput (Page.input Page.Name) ] []
-            ]
+    div [ Attrs.class "field" ]
+        [ label [ Attrs.class "label" ] [ text "Name of the Seedbox" ]
+        , input [ Attrs.class "input", Attrs.value box.name, Events.onInput (Page.input Page.Name) ] []
+        ]
 
 
 portField : Page.Model -> Html Page.Msg
@@ -198,13 +200,13 @@ portField model =
                 firstError :: otherErrors ->
                     ( "input is-danger", p [ Attrs.class "help is-danger" ] (List.foldl (\error errors -> text error :: (br [] [] :: errors)) [ text firstError ] otherErrors) )
     in
-        div [ Attrs.class "field" ]
-            [ label [ Attrs.class "label" ] [ text "Port" ]
-            , div [ Attrs.class "control" ]
-                [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.port_, Events.onInput (Page.input Page.Port) ] []
-                ]
-            , help
+    div [ Attrs.class "field" ]
+        [ label [ Attrs.class "label" ] [ text "Port" ]
+        , div [ Attrs.class "control" ]
+            [ input [ Attrs.class inputClass, Attrs.type_ "text", Attrs.placeholder "http://url-of-my-box.com", Attrs.value box.port_, Events.onInput (Page.input Page.Port) ] []
             ]
+        , help
+        ]
 
 
 submitAndDeleteGroup : Page.Model -> List (Html Page.Msg)
@@ -230,10 +232,11 @@ warningDiv model =
                 accessible =
                     box.accessible
             in
-                if accessible then
-                    div [] []
-                else
-                    div [ Attrs.class "notification is-warning" ] [ text "the seedbox is not accessible you should maybe add basic auth settings" ]
+            if accessible then
+                div [] []
+
+            else
+                div [ Attrs.class "notification is-warning" ] [ text "the seedbox is not accessible you should maybe add basic auth settings" ]
 
         _ ->
             div [] []

@@ -41,7 +41,7 @@ toString path =
                 TrackList ->
                     [ "tracks" ]
     in
-        String.join "/" pieces
+    String.join "/" pieces
 
 
 href : Route -> Html.Attribute msg

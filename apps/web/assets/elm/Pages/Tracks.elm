@@ -47,7 +47,7 @@ update msg model =
                 trackRoute =
                     "api/tracks/" ++ String.fromInt track.id
             in
-                ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
+            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
 
         Filter filter ->
             ( ( applyFilter model filter, Cmd.none ), NoOp )
@@ -68,24 +68,24 @@ applyFilter model filter =
                         |> Maybe.withDefault ""
                         |> String.toLower
             in
-                String.contains downcasedFilter downcasedField
+            String.contains downcasedFilter downcasedField
 
         isFilteredTrack track =
             isFilteredField track.artist
                 || isFilteredField track.title
                 || isFilteredField track.album
     in
-        case model of
-            { remoteTracks } ->
-                case remoteTracks of
-                    RemoteData.Success trackList ->
-                        { model
-                            | tracks =
-                                List.filter isFilteredTrack trackList
-                        }
+    case model of
+        { remoteTracks } ->
+            case remoteTracks of
+                RemoteData.Success trackList ->
+                    { model
+                        | tracks =
+                            List.filter isFilteredTrack trackList
+                    }
 
-                    _ ->
-                        model
+                _ ->
+                    model
 
 
 handleRemoteResponse remoteTracksResponse model =

@@ -1,6 +1,6 @@
 module Data.Seedbox exposing (Auth(..), Seedbox, authOfBox, hostOfBox, nameOfBox, passwordOfAuth, portOfBox, seedboxDecoder, seedboxEncoder, seedboxListDecoder, toggleAuth, userNameOfAuth)
 
-import Json.Decode as Decode exposing (andThen, bool, fail, field, int, list, nullable, succeed, string)
+import Json.Decode as Decode exposing (andThen, bool, fail, field, int, list, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 import Monocle.Lens as Lens exposing (Lens)
@@ -56,9 +56,9 @@ authDecoder =
         basicAuth u p =
             BasicAuth ( u, p )
     in
-        succeed basicAuth
-            |> required "username" string
-            |> required "password" string
+    succeed basicAuth
+        |> required "username" string
+        |> required "password" string
 
 
 seedboxEncoder : { b | host : String, name : String, port_ : Int, auth : Auth } -> Encode.Value
@@ -74,12 +74,12 @@ seedboxEncoder box =
                         authObject =
                             Encode.object [ ( "username", Encode.string n ), ( "password", Encode.string pw ) ]
                     in
-                        [ ( "auth", authObject ) ]
+                    [ ( "auth", authObject ) ]
 
         encodedSeedbox =
             Encode.object (encodedAuth ++ [ ( "host", Encode.string box.host ), ( "name", Encode.string box.name ), ( "port", Encode.int box.port_ ) ])
     in
-        Encode.object [ ( "seedbox", encodedSeedbox ) ]
+    Encode.object [ ( "seedbox", encodedSeedbox ) ]
 
 
 
@@ -159,7 +159,7 @@ toggleAuth =
                 _ ->
                     NoAuth
     in
-        Lens.modify authOfBox oppose
+    Lens.modify authOfBox oppose
 
 
 id : Seedbox -> String

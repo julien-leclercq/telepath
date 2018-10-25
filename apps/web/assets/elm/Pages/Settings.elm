@@ -3,7 +3,7 @@ module Pages.Settings exposing (Errors, ExternalMsg(..), Model, Msg(..), Pending
 import Data.Seedbox as Data exposing (Seedbox)
 import Debug
 import Http
-import Json.Decode exposing (Decoder, decodeString, field, list, succeed, string)
+import Json.Decode exposing (Decoder, decodeString, field, list, string, succeed)
 import Json.Decode.Pipeline as Decode
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
@@ -124,7 +124,7 @@ seedboxRemoteDataOfState =
                 ConfigSeedbox ( sb, pb, _ ) ->
                     ConfigSeedbox ( sb, pb, rd )
     in
-        Lens get set
+    Lens get set
 
 
 freshSeedbox : PendingSeedbox
@@ -193,6 +193,7 @@ goToConfig seedbox model =
         ConfigSeedbox ( currentBox, _, _ ) ->
             if currentBox == seedbox then
                 ( ( model, Cmd.none ), NoOp )
+
             else
                 ( ( { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
@@ -214,37 +215,37 @@ applyInput state field =
                         |> Lens.modify pendingSeedboxOfState
                    )
     in
-        case field of
-            Host host ->
-                applyWithLens Data.hostOfBox host
+    case field of
+        Host host ->
+            applyWithLens Data.hostOfBox host
 
-            Name name ->
-                applyWithLens Data.nameOfBox name
+        Name name ->
+            applyWithLens Data.nameOfBox name
 
-            Port port_ ->
-                applyWithLens Data.portOfBox port_
+        Port port_ ->
+            applyWithLens Data.portOfBox port_
 
-            AuthName authName ->
-                let
-                    lens =
-                        let
-                            optionalAuthOfBox =
-                                Optional.fromLens Data.authOfBox
-                        in
-                            Optional.compose optionalAuthOfBox Data.userNameOfAuth
-                in
-                    applyWithLens lens authName
+        AuthName authName ->
+            let
+                lens =
+                    let
+                        optionalAuthOfBox =
+                            Optional.fromLens Data.authOfBox
+                    in
+                    Optional.compose optionalAuthOfBox Data.userNameOfAuth
+            in
+            applyWithLens lens authName
 
-            AuthPassword password ->
-                let
-                    lens =
-                        let
-                            optionalAuthOfBox =
-                                Optional.fromLens Data.authOfBox
-                        in
-                            Optional.compose optionalAuthOfBox Data.passwordOfAuth
-                in
-                    applyWithLens lens password
+        AuthPassword password ->
+            let
+                lens =
+                    let
+                        optionalAuthOfBox =
+                            Optional.fromLens Data.authOfBox
+                    in
+                    Optional.compose optionalAuthOfBox Data.passwordOfAuth
+            in
+            applyWithLens lens password
 
 
 toggleAuth : Model -> Model
@@ -336,27 +337,28 @@ handleDeleteStatus remoteData model =
         removeFromList id =
             RemoteData.map (List.filter (\s -> s.id /= id))
     in
-        case remoteData of
-            RemoteData.Success deletedId ->
-                let
-                    newModel =
-                        case model.state of
-                            ConfigSeedbox ( { id }, _, _ ) ->
-                                if id == deletedId then
-                                    { model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }
-                                else
-                                    model
+    case remoteData of
+        RemoteData.Success deletedId ->
+            let
+                newModel =
+                    case model.state of
+                        ConfigSeedbox ( { id }, _, _ ) ->
+                            if id == deletedId then
+                                { model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }
 
-                            _ ->
+                            else
                                 model
-                in
-                    ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
 
-            RemoteData.Failure remoteErrors ->
-                ( { model | errors = remoteErrors }, Cmd.none )
+                        _ ->
+                            model
+            in
+            ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
 
-            _ ->
-                Debug.todo "should not happen"
+        RemoteData.Failure remoteErrors ->
+            ( { model | errors = remoteErrors }, Cmd.none )
+
+        _ ->
+            Debug.todo "should not happen"
 
 
 handleHttpErrors : Http.Error -> Errors
@@ -398,8 +400,8 @@ errorsDecoder =
         genericDecoder =
             Json.Decode.map (\global -> { errors | global = [ global ] }) Request.errorDecoder
     in
-        succeed Errors
-            |> Decode.optional "host" (list string) []
-            |> Decode.optional "name" (list string) []
-            |> Decode.optional "port" (list string) []
-            |> Decode.optional "global" (list string) []
+    succeed Errors
+        |> Decode.optional "host" (list string) []
+        |> Decode.optional "name" (list string) []
+        |> Decode.optional "port" (list string) []
+        |> Decode.optional "global" (list string) []

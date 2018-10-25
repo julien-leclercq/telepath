@@ -46,13 +46,13 @@ menuView =
                     [ a [ Routes.href Routes.Settings ] [ text "Settings" ]
                     ]
                 , li []
-                    [ a [ Routes.href Routes.TrackList ] [text "Tracks"]]
+                    [ a [ Routes.href Routes.TrackList ] [ text "Tracks" ] ]
                 ]
             , p [ Attrs.class "menu-label" ]
                 [ text "Medias" ]
             , ul [ Attrs.class "menu-list" ]
                 [ li []
-                    [ a [ Routes.href Routes.TrackList ] [text "Tracks"]]
+                    [ a [ Routes.href Routes.TrackList ] [ text "Tracks" ] ]
                 ]
             ]
         ]
@@ -67,6 +67,6 @@ errorDiv maybeErrorText =
         errorText =
             Maybe.withDefault defaultErrorText maybeErrorText
     in
-        div
-            []
-            [ p [] [ text errorText ] ]
+    div
+        []
+        [ p [] [ text errorText ] ]

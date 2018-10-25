@@ -14,20 +14,20 @@ view torrent =
         showInfosCheckId =
             "show-infos-torrent" ++ String.fromInt torrent.id
     in
-        div [ Attrs.class "card torrent" ]
-            [ input [ Attrs.type_ "checkbox", Attrs.class "show-files", Attrs.id showFileCheckId ] []
-            , input [ Attrs.type_ "checkbox", Attrs.class "show-infos", Attrs.id showInfosCheckId ] []
-            , div [ Attrs.class "level" ] [ span [ Attrs.class "level-left level-item" ] [ text torrent.name ] ]
-            , div [ Attrs.class "card-footer torrent-header" ]
-                [ div [ Attrs.class "level-right" ]
-                    [ label [ Attrs.for showFileCheckId, Attrs.class "button show-files-label level-item" ] []
-                    , label [ Attrs.for showInfosCheckId, Attrs.class "button show-infos-label level-item" ] []
-                    ]
+    div [ Attrs.class "card torrent" ]
+        [ input [ Attrs.type_ "checkbox", Attrs.class "show-files", Attrs.id showFileCheckId ] []
+        , input [ Attrs.type_ "checkbox", Attrs.class "show-infos", Attrs.id showInfosCheckId ] []
+        , div [ Attrs.class "level" ] [ span [ Attrs.class "level-left level-item" ] [ text torrent.name ] ]
+        , div [ Attrs.class "card-footer torrent-header" ]
+            [ div [ Attrs.class "level-right" ]
+                [ label [ Attrs.for showFileCheckId, Attrs.class "button show-files-label level-item" ] []
+                , label [ Attrs.for showInfosCheckId, Attrs.class "button show-infos-label level-item" ] []
                 ]
-            , filesView torrent
-
-            -- , infosView torrent
             ]
+        , filesView torrent
+
+        -- , infosView torrent
+        ]
 
 
 fileView : File -> Html msg
