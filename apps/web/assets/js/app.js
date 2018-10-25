@@ -5,9 +5,7 @@ import Elm from '../elm/Main.elm'
 let track
 let playing = false
 const container = document.querySelector("#app")
-console.log('elm main', Elm)
 const app = Elm.Elm.Main.init({ node: container, flags: "" })
-console.log(app)
 
 app.ports.playerCmdOut.subscribe(function (ctrl) {
   const actions = {
@@ -20,7 +18,6 @@ app.ports.playerCmdOut.subscribe(function (ctrl) {
   }
 
   actions[ctrl.action](ctrl)
-  console.log(ctrl)
 })
 
 function swapTrack(trackPath) {
