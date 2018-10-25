@@ -13,6 +13,7 @@ defmodule Koop.Schema.Track do
     field(:artist, :string)
     field(:filename, :string)
     field(:album, :string)
+    field(:duration, :float)
   end
 
   @required_params [:filename]
