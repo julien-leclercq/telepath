@@ -36,17 +36,13 @@ type alias Model =
 baseModel : Navigation.Key -> Model
 baseModel navKey =
     { pageState = Loaded <| ErrorPage Nothing
-    , playerState = PlayerPort.nothing
+    , playerState = PlayerPort.init
     , navKey = navKey
     }
 
 
 init : flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Message )
 init _ location navKey =
-    let
-        _ =
-            Debug.log "debugging routing" location
-    in
     setRoute
         (Routes.fromLocation
             location
@@ -159,10 +155,6 @@ updatePage page message model =
             ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
 
         ( TorrentsLoaded (Err error), _ ) ->
-            let
-                _ =
-                    Debug.log "error loading torrents" error
-            in
             ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
 
         ( TorrentsMsg msg, TorrentListPage subModel ) ->

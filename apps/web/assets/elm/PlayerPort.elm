@@ -1,4 +1,4 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), nothing, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
@@ -23,12 +23,18 @@ playStateToString state =
 
 
 type alias Model =
-    Maybe ( Track.Track, PlayState, String )
+    { track : Maybe Track.Track
+    , playState : PlayState
+    , time : String
+    }
 
 
-nothing : Model
-nothing =
-    Nothing
+init : Model
+init =
+    { track = Nothing
+    , playState = OnPause
+    , time = stringifyTime 0
+    }
 
 
 playerView : Model -> Html Msg
@@ -38,12 +44,12 @@ playerView model =
             Maybe.withDefault "Unknown track"
 
         ( track, time ) =
-            case model of
+            case model.track of
                 Nothing ->
                     ( "Choose a track !", "" )
 
-                Just ( currentTrack, currentPlaystate, currentTime ) ->
-                    ( displayTitle currentTrack.title, currentTime )
+                Just currentTrack ->
+                    ( displayTitle currentTrack.title, model.time )
     in
     div
         [ Attrs.id "player"
@@ -93,20 +99,22 @@ update : Model -> Msg -> ( Model, Cmd Msg )
 update model msg =
     case msg of
         Send TogglePlay ->
-            case model of
+            case model.track of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just ( track, playstate, _ ) ->
+                Just track ->
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            ( Just ( track, OnPlay, stringifyTime 0 ), sendPlayerCmd (PlayTrack track) )
+            let
+                newModel =
+                    { model | track = Just track, playState = OnPlay, time = stringifyTime 0 }
+            in
+            ( newModel, sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
-            model
-                |> Maybe.map (\( x, y, _ ) -> ( x, y, stringifyTime time ))
-                |> (\m -> ( m, Cmd.none ))
+            ( { model | time = stringifyTime time }, Cmd.none )
 
 
 stringifyTime receivedTime =
