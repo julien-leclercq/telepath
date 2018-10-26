@@ -28,7 +28,3 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
-
-config :telepath, ecto_repos: [Telepath.Repo]
-
-config :telepath, Telepath.Repo, adapter: EctoMnesia.Adapter
