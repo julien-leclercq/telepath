@@ -17,7 +17,7 @@ defmodule Koop.Schema.Track do
   end
 
   @required_params [:filename]
-  @non_required_params [:title, :track, :artist, :album]
+  @non_required_params [:title, :track, :artist, :album, :duration]
 
   def changeset(struct \\ %__MODULE__{}, params) do
     struct
