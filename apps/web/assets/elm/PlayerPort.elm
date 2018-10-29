@@ -56,15 +56,25 @@ playerView model =
         [ Attrs.id "player"
         , Attrs.class "level"
         ]
-        [ controlBlock
+        [ controlBlock model.playState
         , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
         , span [ Attrs.class "column" ] [ text track ]
         ]
 
 
-controlBlock =
+controlBlock : PlayState -> Html Msg
+controlBlock playState =
+    let
+        playStateIcon =
+            case playState of
+                OnPlay ->
+                    "fas fa-pause"
+
+                OnPause ->
+                    "fas fa-play"
+    in
     div [ Attrs.class "player-controls column" ]
-        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class "fas fa-play" ] [] ]
+        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class playStateIcon ] [] ]
         ]
 
 
@@ -76,6 +86,7 @@ type PortOutMsg
 type Msg
     = TimeChange Float
     | Paused
+    | Played
     | Send PortOutMsg
     | NoOp
 
@@ -97,6 +108,9 @@ decodeCmdIn value =
                             case received of
                                 "pause" ->
                                     Decode.succeed Paused
+
+                                "play" ->
+                                    Decode.succeed Played
 
                                 _ ->
                                     let
@@ -150,6 +164,9 @@ update model msg =
 
         Paused ->
             ( { model | playState = OnPause }, Cmd.none )
+
+        Played ->
+            ( { model | playState = OnPlay }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
