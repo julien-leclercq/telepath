@@ -1,6 +1,6 @@
 module Data.Track exposing (Track, encode, trackDecoder)
 
-import Json.Decode as Decode exposing (int, nullable, string, succeed)
+import Json.Decode as Decode exposing (float, int, nullable, string, succeed)
 import Json.Decode.Pipeline exposing (optional, required)
 import Json.Encode as Encode
 
@@ -11,6 +11,7 @@ type alias Track =
     , artist : Maybe String
     , id : Int
     , path : String
+    , duration : Int
     }
 
 
@@ -22,6 +23,7 @@ trackDecoder =
         |> required "artist" (nullable string)
         |> required "id" int
         |> required "path" string
+        |> required "duration" (Decode.map round float)
 
 
 encode : Track -> Encode.Value
