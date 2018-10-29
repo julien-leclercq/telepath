@@ -1,9 +1,10 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), decodeCmdIn, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Json.Decode as Decode
 import Json.Encode as Serial
 
 
@@ -74,13 +75,44 @@ type PortOutMsg
 
 type Msg
     = TimeChange Float
+    | Paused
     | Send PortOutMsg
+    | NoOp
 
 
 port playerCmdOut : Serial.Value -> Cmd msg
 
 
-port playerCmdIn : (Float -> msg) -> Sub msg
+port playerCmdIn : (Serial.Value -> msg) -> Sub msg
+
+
+decodeCmdIn : Decode.Value -> Msg
+decodeCmdIn value =
+    value
+        |> (Decode.oneOf
+                [ Decode.map TimeChange Decode.float
+                , Decode.string
+                    |> Decode.andThen
+                        (\received ->
+                            case received of
+                                "pause" ->
+                                    Decode.succeed Paused
+
+                                _ ->
+                                    let
+                                        failString =
+                                            "Trying to decoce incoming msg but msg " ++ received ++ " is not recognized"
+                                    in
+                                    let
+                                        _ =
+                                            Debug.log failString ()
+                                    in
+                                    Decode.fail failString
+                        )
+                ]
+                |> Decode.decodeValue
+           )
+        |> Result.withDefault NoOp
 
 
 sendPlayerCmd : PortOutMsg -> Cmd msg
@@ -115,6 +147,12 @@ update model msg =
 
         TimeChange time ->
             ( { model | time = stringifyTime time }, Cmd.none )
+
+        Paused ->
+            ( { model | playState = OnPause }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
 stringifyTime receivedTime =

@@ -272,7 +272,7 @@ main =
     let
         subscriptions =
             \_ ->
-                PlayerPort.playerCmdIn PlayerPort.TimeChange
+                PlayerPort.playerCmdIn PlayerPort.decodeCmdIn
                     |> Sub.map PlayerMsg
 
         -- Sub.none
