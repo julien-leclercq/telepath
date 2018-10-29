@@ -1,9 +1,9 @@
-module Pages.Settings exposing (..)
+module Pages.Settings exposing (Errors, ExternalMsg(..), Model, Msg(..), PendingSeedbox, RemoteField(..), State(..), applyInput, deleteSeedbox, errors, errorsDecoder, errorsOfModel, freshSeedbox, goToConfig, handleCreateResponse, handleDeleteStatus, handleHttpErrors, init, input, pendingFromSeedbox, pendingSeedboxOfState, pushSeedbox, seedboxRemoteDataOfState, sendRequest, stateOfModel, toggleAuth, update, verifySeedbox)
 
 import Data.Seedbox as Data exposing (Seedbox)
 import Debug
 import Http
-import Json.Decode exposing (decodeString, field, list, string, Decoder)
+import Json.Decode exposing (Decoder, decodeString, field, list, string)
 import Json.Decode.Pipeline as Decode
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
@@ -124,7 +124,7 @@ seedboxRemoteDataOfState =
                 ConfigSeedbox ( sb, pb, _ ) ->
                     ConfigSeedbox ( sb, pb, rd )
     in
-        Lens get set
+    Lens get set
 
 
 freshSeedbox : PendingSeedbox
@@ -193,6 +193,7 @@ goToConfig seedbox model =
         ConfigSeedbox ( currentBox, _, _ ) ->
             if currentBox == seedbox then
                 ( ( model, Cmd.none ), NoOp )
+
             else
                 ( ( { model | state = ConfigSeedbox ( seedbox, pendingFromSeedbox seedbox, RemoteData.NotAsked ) }, Cmd.none ), NoOp )
 
@@ -214,37 +215,37 @@ applyInput state field =
                         |> Lens.modify pendingSeedboxOfState
                    )
     in
-        case field of
-            Host host ->
-                applyWithLens Data.hostOfBox host
+    case field of
+        Host host ->
+            applyWithLens Data.hostOfBox host
 
-            Name name ->
-                applyWithLens Data.nameOfBox name
+        Name name ->
+            applyWithLens Data.nameOfBox name
 
-            Port port_ ->
-                applyWithLens Data.portOfBox port_
+        Port port_ ->
+            applyWithLens Data.portOfBox port_
 
-            AuthName authName ->
-                let
-                    lens =
-                        let
-                            optionalAuthOfBox =
-                                Optional.fromLens Data.authOfBox
-                        in
-                            Optional.compose optionalAuthOfBox Data.userNameOfAuth
-                in
-                    applyWithLens lens authName
+        AuthName authName ->
+            let
+                lens =
+                    let
+                        optionalAuthOfBox =
+                            Optional.fromLens Data.authOfBox
+                    in
+                    Optional.compose optionalAuthOfBox Data.userNameOfAuth
+            in
+            applyWithLens lens authName
 
-            AuthPassword password ->
-                let
-                    lens =
-                        let
-                            optionalAuthOfBox =
-                                Optional.fromLens Data.authOfBox
-                        in
-                            Optional.compose optionalAuthOfBox Data.passwordOfAuth
-                in
-                    applyWithLens lens password
+        AuthPassword password ->
+            let
+                lens =
+                    let
+                        optionalAuthOfBox =
+                            Optional.fromLens Data.authOfBox
+                    in
+                    Optional.compose optionalAuthOfBox Data.passwordOfAuth
+            in
+            applyWithLens lens password
 
 
 toggleAuth : Model -> Model
@@ -257,7 +258,7 @@ verifySeedbox pendingSeedbox =
     String.toInt pendingSeedbox.port_
         |> Result.map
             (\port_ ->
-                ({ host = pendingSeedbox.host, name = pendingSeedbox.name, port_ = port_, auth = pendingSeedbox.auth })
+                { host = pendingSeedbox.host, name = pendingSeedbox.name, port_ = port_, auth = pendingSeedbox.auth }
             )
         |> Result.mapError (\_ -> { errors | port_ = [ "Error parsing port to an int" ] })
 
@@ -337,27 +338,28 @@ handleDeleteStatus remoteData model =
         removeFromList id =
             RemoteData.map (List.filter (\s -> s.id /= id))
     in
-        case remoteData of
-            RemoteData.Success deletedId ->
-                let
-                    newModel =
-                        case model.state of
-                            ConfigSeedbox ( { id }, _, _ ) ->
-                                if id == deletedId then
-                                    (({ model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }))
-                                else
-                                    (model)
+    case remoteData of
+        RemoteData.Success deletedId ->
+            let
+                newModel =
+                    case model.state of
+                        ConfigSeedbox ( { id }, _, _ ) ->
+                            if id == deletedId then
+                                { model | state = AddSeedbox ( freshSeedbox, RemoteData.NotAsked ) }
 
-                            _ ->
-                                (model)
-                in
-                    ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
+                            else
+                                model
 
-            RemoteData.Failure errors ->
-                ( { model | errors = errors }, Cmd.none )
+                        _ ->
+                            model
+            in
+            ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
 
-            _ ->
-                Debug.crash "should not happen"
+        RemoteData.Failure errors ->
+            ( { model | errors = errors }, Cmd.none )
+
+        _ ->
+            Debug.crash "should not happen"
 
 
 handleHttpErrors : Http.Error -> Errors
@@ -368,7 +370,7 @@ handleHttpErrors error =
 
         Http.BadStatus { body } ->
             decodeString errorsDecoder body
-                |> Result.withDefault ({ errors | global = [ "error decoding errors I have no more arguments" ] })
+                |> Result.withDefault { errors | global = [ "error decoding errors I have no more arguments" ] }
 
         Http.Timeout ->
             { errors | global = [ "network timeout" ] }
@@ -399,8 +401,8 @@ errorsDecoder =
         genericDecoder =
             Json.Decode.map (\global -> { errors | global = global }) Request.errorDecoder
     in
-        Decode.decode Errors
-            |> Decode.optional "host" (list string) []
-            |> Decode.optional "name" (list string) []
-            |> Decode.optional "port" (list string) []
-            |> Decode.optional "global" (list string) []
+    Decode.decode Errors
+        |> Decode.optional "host" (list string) []
+        |> Decode.optional "name" (list string) []
+        |> Decode.optional "port" (list string) []
+        |> Decode.optional "global" (list string) []
