@@ -52,4 +52,22 @@ defmodule Koop.Schema.Track do
       Repo.insert(track)
     end)
   end
+
+  def update_or_create(%Ecto.Changeset{} = changeset) do
+    {_, filename} = fetch_field(changeset, :filename)
+
+    __MODULE__
+    |> Repo.get_by(filename: filename)
+    |> Result.from_value
+    |> Result.either(
+      fn _ ->
+        Repo.insert(changeset)
+      end,
+      fn track ->
+        track
+        |> change(changeset.changes)
+        |> Repo.update
+      end
+    )
+  end
 end

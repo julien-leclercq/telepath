@@ -14,7 +14,7 @@ defmodule Koop.Library do
     |> get_infos()
     |> Enum.map(
       &Result.and_then(&1, fn cs ->
-        Track.get_or_create(cs)
+        Track.update_or_create(cs)
       end)
     )
   end
