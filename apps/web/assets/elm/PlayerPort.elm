@@ -44,20 +44,20 @@ playerView model =
         displayTitle =
             Maybe.withDefault "Unknown track"
 
-        ( track, time ) =
+        ( track, time, totalTime ) =
             case model.track of
                 Nothing ->
-                    ( "Choose a track !", "" )
+                    ( "Choose a track !", "", "" )
 
                 Just currentTrack ->
-                    ( displayTitle currentTrack.title, model.time )
+                    ( displayTitle currentTrack.title, model.time, formatTime currentTrack.duration )
     in
     div
         [ Attrs.id "player"
         , Attrs.class "level"
         ]
         [ controlBlock
-        , span [ Attrs.class "column" ] [ text time ]
+        , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
         , span [ Attrs.class "column" ] [ text track ]
         ]
 
@@ -155,11 +155,17 @@ update model msg =
             ( model, Cmd.none )
 
 
+stringifyTime : Float -> String
 stringifyTime receivedTime =
     let
         totalSeconds =
-            floor receivedTime
+            round receivedTime
     in
+    formatTime totalSeconds
+
+
+formatTime : Int -> String
+formatTime totalSeconds =
     let
         ( minutes, seconds ) =
             ( totalSeconds // 60, modBy 60 totalSeconds )
