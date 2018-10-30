@@ -30,23 +30,28 @@ defmodule Transmission do
       method: @get_session
     }
     |> send_request(seedbox, [], options)
-    |> Result.and_then(&handle_response/1)
   end
 
   defp send_request(
          %Request{} = request,
-         %{auth: %{user: user, password: password}} = seedbox,
+         %{auth: %{username: user, password: password}} = seedbox,
          headers,
          options
        ) do
+    IO.puts("authentified seedbox")
     seedbox = Map.delete(seedbox, :auth)
     options = [hackney: [basic_auth: {user, password}]] ++ options
 
     request
     |> send_request(seedbox, headers, options)
-    |> Result.and_then(&handle_response/1)
-    |> Result.or_else(fn {:conflict, header} ->
-      send_request(request, seedbox, [header | headers], options)
+    |> Result.or_else(fn error ->
+      case error do
+        {:conflict, header} ->
+          send_request(request, seedbox, [header | headers], options)
+
+        _ ->
+          Result.error(error)
+      end
     end)
   end
 
@@ -54,6 +59,7 @@ defmodule Transmission do
     seedbox
     |> build_url
     |> post(request, headers, options)
+    |> Result.and_then(&handle_response/1)
   end
 
   defp process_request_body(request) do
@@ -62,10 +68,20 @@ defmodule Transmission do
 
   defp process_request_options(options) do
     options = [follow_redirect: true] ++ options
+    proxy = Application.get_env(Transmission, :proxy)
 
-    case Application.get_env(Transmission, :proxy) do
-      nil -> options
-      proxy -> [hackney: [proxy: proxy]] ++ options
+    if proxy && String.length(proxy) > 0 do
+      Keyword.merge(options, [hackney: [proxy: proxy]], fn key, v1, v2 ->
+        case key do
+          :hackney ->
+            Keyword.merge(v1, v2)
+
+          _ ->
+            v1
+        end
+      end)
+    else
+      options
     end
   end
 

@@ -38,6 +38,13 @@ defmodule Telepath.Seedbox.Repository do
     |> Result.tap_error(fn _ -> Logger.error("REPOSITORY:CREATE unable to create seedbox") end)
   end
 
+  def find(seedbox_id) do
+    case Registry.lookup(@registry, seedbox_id) do
+      [] -> Result.error(:not_found)
+      [seedbox_server | _] -> Result.ok(seedbox_server)
+    end
+  end
+
   defp find_supervisor_pid(repository_pid) do
     repository_pid
     |> Supervisor.which_children()
