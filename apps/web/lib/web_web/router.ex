@@ -34,5 +34,6 @@ defmodule WebWeb.Router do
     get("/torrents", Api.TorrentController, :index)
 
     get("/tracks", Api.TrackController, :index)
+    get("/tracks/:track_id", Api.TrackController, :get_file)
   end
 end

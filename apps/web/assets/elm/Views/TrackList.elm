@@ -2,8 +2,10 @@ module Views.TrackList exposing (view)
 
 import Data.Track exposing (Track)
 import Html exposing (div, text)
-import Pages.Tracks exposing (Model, Msg)
+import Html.Events as Events
+import Pages.Tracks exposing (..)
 import RemoteData
+import PlayerPort
 
 
 view : Model -> Html.Html Msg
@@ -20,4 +22,4 @@ view model =
 
 trackView : Track -> Html.Html Msg
 trackView track =
-    div [] [ text track.title ]
+    div [] [ div [ Events.onClick <| PlayTrack track ] [ text track.title ] ]

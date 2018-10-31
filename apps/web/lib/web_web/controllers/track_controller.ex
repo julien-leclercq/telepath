@@ -13,4 +13,11 @@ defmodule WebWeb.Api.TrackController do
       end
     )
   end
+
+  def get_file(conn, _params = %{"track_id" => track_id}) do
+    track =
+      Web.Track.get_path(track_id)
+    conn
+    |> send_file(200, "/#{track}")
+  end
 end
