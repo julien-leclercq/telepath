@@ -155,6 +155,10 @@ updatePage page message model =
             ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
 
         ( TorrentsLoaded (Err error), _ ) ->
+            let
+                _ =
+                    Debug.log "error loading torrents" error
+            in
             ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
 
         ( TorrentsMsg msg, TorrentListPage subModel ) ->
