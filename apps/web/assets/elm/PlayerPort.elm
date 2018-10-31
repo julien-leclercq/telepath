@@ -1,11 +1,10 @@
-port module PlayerPort exposing (..)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), nothing, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
-import Json.Encode as Serial
-import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, span, text, ul)
+import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
-import Data.Track as Track
+import Json.Encode as Serial
 
 
 type PlayState
@@ -24,28 +23,42 @@ playStateToString state =
 
 
 type alias Model =
-    Maybe ( Track.Track, PlayState, Float )
+    Maybe ( Track.Track, PlayState, String )
+
+
+nothing : Model
+nothing =
+    Nothing
 
 
 playerView : Model -> Html Msg
 playerView model =
     let
-        ( track, playstate, time ) =
+        displayTitle =
+            Maybe.withDefault "Unknown track"
+
+        ( track, time ) =
             case model of
                 Nothing ->
-                    ( "", "", "" )
+                    ( "Choose a track !", "" )
 
-                Just ( track, playstate, time ) ->
-                    ( track.title, playStateToString playstate, toString time )
+                Just ( currentTrack, currentPlaystate, currentTime ) ->
+                    ( displayTitle currentTrack.title, currentTime )
     in
-        div [ Attrs.class "level", Attrs.style [ ( "position", "fixed" ), ( "bottom", "0px" ), ( "width", "100%" ), ( "background", "white" ) ] ]
-            [ button [ Events.onClick <| Send TogglePlay ]
-                [ text "▶️"
-                ]
-            , span [] [ text track ]
-            , span [] [ text time ]
-            , span [] [ text playstate ]
-            ]
+    div
+        [ Attrs.id "player"
+        , Attrs.class "level"
+        ]
+        [ controlBlock
+        , span [ Attrs.class "column" ] [ text time ]
+        , span [ Attrs.class "column" ] [ text track ]
+        ]
+
+
+controlBlock =
+    div [ Attrs.class "player-controls column" ]
+        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class "fas fa-play" ] [] ]
+        ]
 
 
 type PortOutMsg
@@ -88,12 +101,33 @@ update model msg =
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            ( Just ( track, OnPlay, 0 ), sendPlayerCmd (PlayTrack track) )
+            ( Just ( track, OnPlay, stringifyTime 0 ), sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
             model
-                |> Maybe.map (\( x, y, _ ) -> ( x, y, time ))
+                |> Maybe.map (\( x, y, _ ) -> ( x, y, stringifyTime time ))
                 |> (\m -> ( m, Cmd.none ))
+
+
+stringifyTime receivedTime =
+    let
+        totalSeconds =
+            floor receivedTime
+    in
+    let
+        ( minutes, seconds ) =
+            ( totalSeconds // 60, modBy 60 totalSeconds )
+    in
+    let
+        formatedMinutes =
+            String.fromInt minutes
+
+        formatedSeconds =
+            seconds
+                |> String.fromInt
+                |> String.padLeft 2 '0'
+    in
+    formatedMinutes ++ ":" ++ formatedSeconds
 
 
 playTrack : Track -> Msg

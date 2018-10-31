@@ -5,7 +5,8 @@ import Elm from '../elm/Main.elm'
 let track
 let playing = false
 const container = document.querySelector("#app")
-const app = Elm.Main.embed(container)
+console.log('elm main', Elm)
+const app = Elm.Elm.Main.init({ node: container, flags: "" })
 console.log(app)
 
 app.ports.playerCmdOut.subscribe(function (ctrl) {
@@ -28,10 +29,15 @@ function swapTrack(trackPath) {
   }
   track = new Audio(trackPath)
   track.ontimeupdate = (e) => handleTimeChange(e.target)
+  track.onpause = (e) => handlePause(e.target)
   track.play()
   playing = true
 }
 
 function handleTimeChange(track) {
   app.ports.playerCmdIn.send(track.currentTime)
+}
+
+function handlePause(track) {
+  track.ended ? app.ports.playerCmdIn.send('end') : app.ports.playerCmdIn.send('pause')
 }

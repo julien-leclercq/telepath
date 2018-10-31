@@ -1,13 +1,14 @@
-module Data.Torrent exposing (Torrent, File, torrentListDecoder)
+module Data.Torrent exposing (File, Torrent, torrentListDecoder)
 
 import Json.Decode
     exposing
         ( Decoder
-        , string
         , int
         , list
+        , string
+        , succeed
         )
-import Json.Decode.Pipeline exposing (decode, required)
+import Json.Decode.Pipeline exposing (required)
 
 
 type alias Torrent =
@@ -30,7 +31,7 @@ type alias File =
 
 torrentDecoder : Decoder Torrent
 torrentDecoder =
-    decode Torrent
+    succeed Torrent
         |> required "id" int
         |> required "seedbox_id" string
         |> required "name" string
@@ -46,7 +47,7 @@ torrentListDecoder =
 
 fileDecoder : Decoder File
 fileDecoder =
-    decode File
+    succeed File
         |> required "name" string
         |> required "bytesCompleted" int
         |> required "length" int

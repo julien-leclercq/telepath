@@ -8,8 +8,8 @@ import Request
 
 
 url : String -> String
-url endpoint =
-    "/api/" ++ endpoint
+url path =
+    "/api/" ++ path
 
 
 endpoint : String

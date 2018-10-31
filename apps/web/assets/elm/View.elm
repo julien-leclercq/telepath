@@ -1,4 +1,4 @@
-module View exposing (..)
+module View exposing (appLayout, errorDiv, menuView, navView)
 
 import Html exposing (Html, a, aside, audio, button, div, header, li, nav, p, source, text, ul)
 import Html.Attributes as Attrs
@@ -45,6 +45,14 @@ menuView =
                 , li []
                     [ a [ Routes.href Routes.Settings ] [ text "Settings" ]
                     ]
+                , li []
+                    [ a [ Routes.href Routes.TrackList ] [ text "Tracks" ] ]
+                ]
+            , p [ Attrs.class "menu-label" ]
+                [ text "Medias" ]
+            , ul [ Attrs.class "menu-list" ]
+                [ li []
+                    [ a [ Routes.href Routes.TrackList ] [ text "Tracks" ] ]
                 ]
             ]
         ]
@@ -53,14 +61,12 @@ menuView =
 errorDiv : Maybe String -> Html msg
 errorDiv maybeErrorText =
     let
-        errorText =
-            case maybeErrorText of
-                Nothing ->
-                    "You have encountered an error OR maybe this page is not implemented yet"
+        defaultErrorText =
+            "You have encountered an error OR maybe this page is not implemented yet"
 
-                Just errorText ->
-                    errorText
+        errorText =
+            Maybe.withDefault defaultErrorText maybeErrorText
     in
-        div
-            []
-            [ p [] [ text errorText ] ]
+    div
+        []
+        [ p [] [ text errorText ] ]

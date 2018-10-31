@@ -129,10 +129,10 @@ errorDiv model =
 
         error _ =
             let
-                error =
+                errorText =
                     "there is an error"
             in
-            div [ Attrs.class "notification is-danger" ] [ text error ]
+            div [ Attrs.class "notification is-danger" ] [ text errorText ]
     in
     case model.state of
         Page.AddSeedbox ( _, RemoteData.Failure _ ) ->

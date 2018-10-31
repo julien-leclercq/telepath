@@ -3,7 +3,7 @@ module Pages.Settings exposing (Errors, ExternalMsg(..), Model, Msg(..), Pending
 import Data.Seedbox as Data exposing (Seedbox)
 import Debug
 import Http
-import Json.Decode exposing (Decoder, decodeString, field, list, string)
+import Json.Decode exposing (Decoder, decodeString, field, list, string, succeed)
 import Json.Decode.Pipeline as Decode
 import Monocle.Lens as Lens exposing (Lens)
 import Monocle.Optional as Optional exposing (Optional)
@@ -67,7 +67,7 @@ init =
 
 pendingFromSeedbox : Seedbox -> PendingSeedbox
 pendingFromSeedbox seedbox =
-    PendingSeedbox seedbox.auth seedbox.host seedbox.name (toString seedbox.port_)
+    PendingSeedbox seedbox.auth seedbox.host seedbox.name (String.fromInt seedbox.port_)
 
 
 
@@ -256,6 +256,7 @@ toggleAuth =
 verifySeedbox : PendingSeedbox -> Result Errors { auth : Data.Auth, host : String, name : String, port_ : Int }
 verifySeedbox pendingSeedbox =
     String.toInt pendingSeedbox.port_
+        |> Result.fromMaybe "error parsing port"
         |> Result.map
             (\port_ ->
                 { host = pendingSeedbox.host, name = pendingSeedbox.name, port_ = port_, auth = pendingSeedbox.auth }
@@ -277,8 +278,8 @@ pushSeedbox model =
                                     |> sendRequest
                                     |> (\cmd -> ( { model | state = AddSeedbox ( pendingSeedbox, RemoteData.Loading ) }, Cmd.map CreateStatus cmd ))
 
-                            Result.Err errors ->
-                                ( { model | errors = errors }, Cmd.none )
+                            Result.Err newErrors ->
+                                ( { model | errors = newErrors }, Cmd.none )
                    )
 
         ConfigSeedbox ( seedbox, pendingSeedbox, _ ) ->
@@ -292,8 +293,8 @@ pushSeedbox model =
                                     |> sendRequest
                                     |> (\cmd -> ( model |> Lens.modify stateOfModel (seedboxRemoteDataOfState.set RemoteData.Loading), Cmd.map UpdateStatus cmd ))
 
-                            Result.Err errors ->
-                                ( errorsOfModel.set errors model, Cmd.none )
+                            Result.Err errorsToSet ->
+                                ( errorsOfModel.set errorsToSet model, Cmd.none )
                    )
 
 
@@ -327,7 +328,7 @@ handleCreateResponse remoteData model =
             ( { model | seedboxes = RemoteData.map ((::) box) model.seedboxes, state = ConfigSeedbox ( box, pendingFromSeedbox box, RemoteData.NotAsked ) }, Cmd.none )
 
         _ ->
-            Debug.crash "Remote Data is in an unplanned state"
+            Debug.todo "Remote Data is in an unplanned state"
 
 
 handleDeleteStatus : RemoteData Errors String -> Model -> ( Model, Cmd Msg )
@@ -353,11 +354,11 @@ handleDeleteStatus remoteData model =
             in
             ( { newModel | seedboxes = removeFromList deletedId newModel.seedboxes }, Cmd.none )
 
-        RemoteData.Failure errors ->
-            ( { model | errors = errors }, Cmd.none )
+        RemoteData.Failure remoteErrors ->
+            ( { model | errors = remoteErrors }, Cmd.none )
 
         _ ->
-            Debug.crash "should not happen"
+            Debug.todo "should not happen"
 
 
 handleHttpErrors : Http.Error -> Errors
@@ -376,8 +377,8 @@ handleHttpErrors error =
         Http.NetworkError ->
             { errors | global = [ "network unavailable" ] }
 
-        Http.BadPayload error _ ->
-            { errors | global = [ error ] }
+        Http.BadPayload remoteError _ ->
+            { errors | global = [ remoteError ] }
 
 
 deleteSeedbox : Model -> ( Model, Cmd Msg )
@@ -397,9 +398,9 @@ errorsDecoder : Decoder Errors
 errorsDecoder =
     let
         genericDecoder =
-            Json.Decode.map (\global -> { errors | global = global }) Request.errorDecoder
+            Json.Decode.map (\global -> { errors | global = [ global ] }) Request.errorDecoder
     in
-    Decode.decode Errors
+    succeed Errors
         |> Decode.optional "host" (list string) []
         |> Decode.optional "name" (list string) []
         |> Decode.optional "port" (list string) []

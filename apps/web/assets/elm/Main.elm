@@ -1,14 +1,16 @@
-module Main exposing (Message(..), Model, Page(..), PageState(..), getPage, init, main, mainView, renderApp, setRoute, update, updatePage)
+module Main exposing (main)
 
+import Browser
+import Browser.Navigation as Navigation
 import Debug
 import Html exposing (Html)
 import Http
-import Navigation exposing (program)
 import Pages.Settings as SettingsPage
 import Pages.Torrents as TorrentsPage
 import Pages.Tracks as TracksPage
 import PlayerPort exposing (playerView)
 import Routes
+import Url
 import View exposing (appLayout, errorDiv)
 import Views.Settings as Settings
 import Views.TorrentList.List as TorrentList
@@ -28,18 +30,28 @@ type PageState
 
 
 type alias Model =
-    { pageState : PageState, playerState : PlayerPort.Model }
+    { pageState : PageState, playerState : PlayerPort.Model, navKey : Navigation.Key }
 
 
-init : Navigation.Location -> ( Model, Cmd Message )
-init location =
+baseModel : Navigation.Key -> Model
+baseModel navKey =
+    { pageState = Loaded <| ErrorPage Nothing
+    , playerState = PlayerPort.nothing
+    , navKey = navKey
+    }
+
+
+init : flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Message )
+init _ location navKey =
+    let
+        _ =
+            Debug.log "debugging routing" location
+    in
     setRoute
         (Routes.fromLocation
             location
         )
-        { pageState = Loaded <| ErrorPage Nothing
-        , playerState = Nothing
-        }
+        (baseModel navKey)
 
 
 getPage : PageState -> Page
@@ -93,9 +105,10 @@ mainView model =
 
 
 type Message
-    = None
+    = ClickedLink Browser.UrlRequest
+    | None
     | PlayerMsg PlayerPort.Msg
-    | UrlChange Navigation.Location
+    | UrlChange Url.Url
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
     | TracksMsg TracksPage.Msg
@@ -117,6 +130,14 @@ updatePage page message model =
 
         ( UrlChange location, _ ) ->
             setRoute (Routes.fromLocation location) model
+
+        ( ClickedLink urlRequest, _ ) ->
+            case urlRequest of
+                Browser.External url ->
+                    ( model, Navigation.load url )
+
+                Browser.Internal url ->
+                    ( model, Navigation.pushUrl model.navKey (Url.toString url) )
 
         ( SettingsMsg msg, SettingsPage submodel ) ->
             let
@@ -175,12 +196,12 @@ updatePage page message model =
                         TracksPage.NoOp ->
                             ( model.playerState, Cmd.none )
 
-                        TracksPage.PlayerMsg msg ->
+                        TracksPage.PlayerMsg playerMsg ->
                             let
-                                ( newPlayerState, newPlayerCmd ) =
-                                    PlayerPort.update model.playerState msg
+                                ( updatedPlayerState, newPlayerCmd ) =
+                                    PlayerPort.update model.playerState playerMsg
                             in
-                            ( newPlayerState, Cmd.map PlayerMsg newPlayerCmd )
+                            ( updatedPlayerState, Cmd.map PlayerMsg newPlayerCmd )
             in
             ( { newModel | playerState = newPlayerState }, Cmd.batch [ newTrackMsg, newMainMsg ] )
 
@@ -207,10 +228,10 @@ setRoute maybeRoute model =
             let
                 msg =
                     let
-                        ( model, cmd ) =
+                        ( settingsModel, cmd ) =
                             SettingsPage.init
                     in
-                    Cmd.map (\msg -> SettingsLoaded ( model, msg )) cmd
+                    Cmd.map (\initMsg -> SettingsLoaded ( settingsModel, initMsg )) cmd
             in
             ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
@@ -225,10 +246,10 @@ setRoute maybeRoute model =
             let
                 msg =
                     let
-                        ( model, cmd ) =
+                        ( trackListModel, cmd ) =
                             TracksPage.init
                     in
-                    Cmd.map (\msg -> TracksLoaded ( model, msg )) cmd
+                    Cmd.map (\initMsg -> TracksLoaded ( trackListModel, initMsg )) cmd
             in
             ( { model | pageState = TransitioningFrom <| getPage model.pageState }, msg )
 
@@ -237,16 +258,57 @@ setRoute maybeRoute model =
 -- Main
 
 
-main : Platform.Program Basics.Never Model Message
+onUrlChange : Url.Url -> Message
+onUrlChange =
+    UrlChange
+
+
+onUrlRequest : Browser.UrlRequest -> Message
+onUrlRequest urlRequest =
+    ClickedLink urlRequest
+
+
+view : Model -> Browser.Document Message
+view model =
+    { title = "telepath"
+    , body = [ mainView model ]
+    }
+
+
+main : Platform.Program String Model Message
 main =
-    Navigation.program UrlChange
-        { init = init
-        , update = update
-        , view = mainView
-        , subscriptions =
-            (\_ ->
+    let
+        subscriptions =
+            \_ ->
                 PlayerPort.playerCmdIn PlayerPort.TimeChange
                     |> Sub.map PlayerMsg
-             -- Sub.none
-            )
+
+        -- Sub.none
+        -- Browser.application UrlChange
+        --     { init = init
+        --     , update = update
+        --     , view = mainView
+        --     , subscriptions =
+        --     }
+        -- onUrlRequest =
+        --     (\urlRequest ->
+        --         case urlRequest of
+        --             Internal url ->
+        --                 Browser.Navigation.pushUrl
+    in
+    -- Browser.application
+    --     { init = init
+    --     , update = update
+    --     , view = view
+    --     , subscriptions = subscriptions
+    --     , onUrlChange = onUrlChange
+    --     , onUrlRequest = onUrlRequest
+    --     }
+    Browser.application
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        , onUrlChange = onUrlChange
+        , onUrlRequest = onUrlRequest
         }
