@@ -1,4 +1,4 @@
-module Request exposing (Error, errorDecoder, delete, put)
+@module Request exposing (Error, errorDecoder, delete, put)
 
 import Http
 import Json.Decode as Decode exposing (field)

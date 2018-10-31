@@ -121,6 +121,7 @@ defmodule Transmission do
          headers,
          options
        ) do
+    IO.puts("authentified seedbox")
     seedbox = Map.delete(seedbox, :auth)
     options = [hackney: [basic_auth: {user, password}]] ++ options
 
