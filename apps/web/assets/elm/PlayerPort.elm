@@ -132,6 +132,7 @@ type Msg
     | Played
     | Send PortOutMsg
     | NoOp
+    | AddToCurrentPlayList Track
 
 
 port playerCmdOut : Serial.Value -> Cmd msg
@@ -237,6 +238,14 @@ update model msg =
                         |> Active
                     , Cmd.none
                     )
+
+        AddToCurrentPlayList track ->
+            case model of
+                InActive ->
+                    ( model, sendPlayerCmd (PlayTrack track) )
+
+                Active state ->
+                    ( Active { state | currentPlaylist = state.currentPlaylist ++ [ track ] }, Cmd.none )
 
         NoOp ->
             doNothing
