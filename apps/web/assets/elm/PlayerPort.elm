@@ -23,19 +23,35 @@ playStateToString state =
             "playing"
 
 
-type alias Model =
-    { track : Maybe Track.Track
-    , playState : PlayState
-    , time : String
-    }
+type Model
+    = InActive
+    | Active
+        { playerState :
+            { track : Track
+            , playState : PlayState
+            , time : String
+            }
+        , currentPlaylist : List Track
+        , pastPlaylist : List Track
+        }
 
 
 init : Model
 init =
-    { track = Nothing
-    , playState = OnPause
-    , time = stringifyTime 0
-    }
+    InActive
+
+
+initActive : Track -> Model
+initActive track =
+    Active
+        { playerState =
+            { track = track
+            , playState = OnPause
+            , time = stringifyTime 0
+            }
+        , currentPlaylist = []
+        , pastPlaylist = []
+        }
 
 
 playerView : Model -> Html Msg
@@ -45,33 +61,42 @@ playerView model =
             Maybe.withDefault "Unknown track"
 
         ( track, time, totalTime ) =
-            case model.track of
-                Nothing ->
+            case model of
+                InActive ->
                     ( "Choose a track !", "", "" )
 
-                Just currentTrack ->
-                    ( displayTitle currentTrack.title, model.time, formatTime currentTrack.duration )
+                Active { playerState } ->
+                    let
+                        currentTrack =
+                            playerState.track
+                    in
+                    ( displayTitle currentTrack.title, playerState.time, formatTime currentTrack.duration )
     in
     div
         [ Attrs.id "player"
         , Attrs.class "level"
         ]
-        [ controlBlock model.playState
+        [ controlBlock model
         , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
         , span [ Attrs.class "column" ] [ text track ]
         ]
 
 
-controlBlock : PlayState -> Html Msg
-controlBlock playState =
+controlBlock : Model -> Html Msg
+controlBlock model =
     let
         playStateIcon =
-            case playState of
-                OnPlay ->
-                    "fas fa-pause"
+            case model of
+                InActive ->
+                    "fas fa-play inactive"
 
-                OnPause ->
-                    "fas fa-play"
+                Active { playerState } ->
+                    case playerState.playState of
+                        OnPlay ->
+                            "fas fa-pause"
+
+                        OnPause ->
+                            "fas fa-play"
     in
     div [ Attrs.class "player-controls column" ]
         [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class playStateIcon ] [] ]
@@ -145,28 +170,66 @@ update : Model -> Msg -> ( Model, Cmd Msg )
 update model msg =
     case msg of
         Send TogglePlay ->
-            case model.track of
-                Nothing ->
+            case model of
+                InActive ->
                     ( model, Cmd.none )
 
-                Just track ->
+                _ ->
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
             let
                 newModel =
-                    { model | track = Just track, playState = OnPlay, time = stringifyTime 0 }
+                    initActive track
             in
             ( newModel, sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
-            ( { model | time = stringifyTime time }, Cmd.none )
+            case model of
+                InActive ->
+                    ( model, Cmd.none )
+
+                Active state ->
+                    let
+                        playerState =
+                            state.playerState
+
+                        newPlayerState =
+                            { playerState | time = stringifyTime time }
+                    in
+                    ( Active { state | playerState = newPlayerState }, Cmd.none )
 
         Paused ->
-            ( { model | playState = OnPause }, Cmd.none )
+            case model of
+                InActive ->
+                    ( model, Cmd.none )
+
+                Active state ->
+                    let
+                        playerState =
+                            state.playerState
+                    in
+                    let
+                        newPlayerState =
+                            { playerState | playState = OnPause }
+                    in
+                    ( Active { state | playerState = newPlayerState }, Cmd.none )
 
         Played ->
-            ( { model | playState = OnPlay }, Cmd.none )
+            case model of
+                InActive ->
+                    ( model, Cmd.none )
+
+                Active state ->
+                    let
+                        playerState =
+                            state.playerState
+                    in
+                    let
+                        newPlayerState =
+                            { playerState | playState = OnPlay }
+                    in
+                    ( Active { state | playerState = newPlayerState }, Cmd.none )
 
         NoOp ->
             ( model, Cmd.none )
