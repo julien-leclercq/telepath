@@ -1,14 +1,25 @@
-defmodule Telepath.Seedbox do
+defmodule Telepath.Data.Seedbox do
   @moduledoc """
   This module provides data structure and functions to manipulate seedboxes
   """
+
+  alias Ecto.Changeset
   alias Kaur.Result
   alias Telepath.Seedbox
   alias Telepath.Seedbox.{Auth, Impl, Repository}
-  require Logger
+
+  import Changeset
+
   use Ecto.Schema
 
-  embedded_schema do
+  require Logger
+
+  @max_port :math.pow(2, 16) - 1
+  @min_port 0
+  @params [:host, :id, :name, :port]
+  @required_params [:host, :port]
+
+  schema "seedboxes" do
     field(:accessible, :boolean, default: false)
     field(:host, :string)
     field(:name, :string, default: "")
@@ -21,7 +32,17 @@ defmodule Telepath.Seedbox do
     embeds_one(:auth, Auth, on_replace: :update)
   end
 
-  @spec create(map) :: {:ok, %Seedbox{}} | {:error, term()}
+  @spec changeset(%__MODULE__{}, map) :: Ecto.Changeset.t()
+  def changeset(%__MODULE__{} = seedbox, params) do
+    seedbox
+    |> cast(params, @params)
+    |> validate_required(@required_params)
+    |> validate_number(:port, greater_than: @min_port)
+    |> validate_number(:port, less_than: @max_port)
+    |> cast_embed(:auth, with: &auth_changeset/2)
+  end
+
+  @spec create(map) :: {:ok, %__MODULE__{}} | {:error, term()}
   def create(seedbox_params) do
     seedbox_params
     |> Impl.create()
@@ -78,5 +99,12 @@ defmodule Telepath.Seedbox do
         _ -> Result.error("impossible to stop process (this is not normal)")
       end
     end)
+  end
+
+  # ---- Private ----
+
+  defp auth_changeset(auth \\ %Auth{}, params) do
+    auth
+    |> cast(params, [:username, :password])
   end
 end

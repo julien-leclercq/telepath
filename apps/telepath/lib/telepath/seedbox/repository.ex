@@ -3,7 +3,7 @@ defmodule Telepath.Seedbox.Repository do
   A registry to hold seedbox genservers
   """
   alias Kaur.Result
-  alias Telepath.Seedbox
+  alias Telepath.Data.Seedbox
   require Logger
   use Supervisor
   @registry :seedbox_repository
@@ -20,7 +20,7 @@ defmodule Telepath.Seedbox.Repository do
       },
       %{
         id: Seedbox.Supervisor,
-        start: {Seedbox.Supervisor, :start_link, []},
+        start: {Telepath.Seedbox.Supervisor, :start_link, []},
         type: :supervisor
       }
     ]
@@ -34,7 +34,7 @@ defmodule Telepath.Seedbox.Repository do
     registry_name = {:via, Registry, {@registry, seedbox.id}}
 
     supervisor_pid
-    |> Seedbox.Supervisor.start_child(seedbox, registry_name)
+    |> Telepath.Seedbox.Supervisor.start_child(seedbox, registry_name)
     |> Result.tap_error(fn _ -> Logger.error("REPOSITORY:CREATE unable to create seedbox") end)
   end
 

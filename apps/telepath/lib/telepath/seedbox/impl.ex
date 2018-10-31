@@ -2,33 +2,17 @@ defmodule Telepath.Seedbox.Impl do
   @moduledoc """
   The concrete implementation of actions on a seedbox worker state
   """
-  alias Ecto.Changeset
   alias Kaur.Result
-  alias Telepath.Seedbox
+  alias Telepath.Data.Seedbox
   alias Telepath.Seedbox.Auth
-  import Changeset
+
+  import Ecto.Changeset
+
   require Logger
-
-  @max_port :math.pow(2, 16) - 1
-  @min_port 0
-  @params [:host, :id, :name, :port]
-  @required_params [:host, :port]
-
-  @spec changeset(%Seedbox{}, map) :: Ecto.Changeset.t()
-  def changeset(%Seedbox{} = seedbox, params) do
-    seedbox
-    |> cast(params, @params)
-    |> validate_required(@required_params)
-    |> validate_number(:port, greater_than: @min_port)
-    |> validate_number(:port, less_than: @max_port)
-    |> cast_embed(:auth, with: &auth_changeset/2)
-    |> put_session
-    |> put_torrents
-  end
 
   def create(params) do
     %Seedbox{}
-    |> changeset(params)
+    |> Seedbox.changeset(params)
     |> case do
       %{valid?: true} = changeset ->
         changeset
@@ -133,20 +117,14 @@ defmodule Telepath.Seedbox.Impl do
         end
       end,
       fn torrents ->
-        IO.inspect(torrents)
         add_torrents_to_box.(torrents)
       end
     )
   end
 
-  def auth_changeset(auth \\ %Auth{}, params) do
-    auth
-    |> cast(params, [:username, :password])
-  end
-
   def update(seedbox, params) do
     seedbox
-    |> changeset(params)
+    |> Seedbox.changeset(params)
     |> case do
       %{valid?: true} = changeset ->
         changeset

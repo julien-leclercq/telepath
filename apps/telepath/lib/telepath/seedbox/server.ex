@@ -3,7 +3,7 @@ defmodule Telepath.Seedbox.Server do
   This module provides a state holding feature per seedbox
   """
   alias Kaur.Result
-  alias Telepath.Seedbox
+  alias Telepath.Data.Seedbox
   alias Telepath.Seedbox.Impl
   require Logger
   use GenServer
