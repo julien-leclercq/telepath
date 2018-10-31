@@ -23,17 +23,35 @@ playStateToString state =
             "playing"
 
 
+type alias PlayerState =
+    { track : Track
+    , playState : PlayState
+    , time : String
+    }
+
+
+setTime : String -> PlayerState -> PlayerState
+setTime time playerState =
+    { playerState | time = time }
+
+
+setPlayState : PlayState -> PlayerState -> PlayerState
+setPlayState playState playerState =
+    { playerState | playState = playState }
+
+
 type Model
     = InActive
     | Active
-        { playerState :
-            { track : Track
-            , playState : PlayState
-            , time : String
-            }
+        { playerState : PlayerState
         , currentPlaylist : List Track
         , pastPlaylist : List Track
         }
+
+
+setPlayerState : PlayerState -> { m | playerState : PlayerState } -> { m | playerState : PlayerState }
+setPlayerState playerState state =
+    { state | playerState = playerState }
 
 
 init : Model
@@ -168,71 +186,60 @@ sendPlayerCmd msg =
 
 update : Model -> Msg -> ( Model, Cmd Msg )
 update model msg =
+    let
+        doNothing =
+            ( model, Cmd.none )
+    in
     case msg of
         Send TogglePlay ->
             case model of
                 InActive ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 _ ->
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            let
-                newModel =
-                    initActive track
-            in
-            ( newModel, sendPlayerCmd (PlayTrack track) )
+            ( initActive track, sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
             case model of
                 InActive ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 Active state ->
-                    let
-                        playerState =
-                            state.playerState
-
-                        newPlayerState =
-                            { playerState | time = stringifyTime time }
-                    in
-                    ( Active { state | playerState = newPlayerState }, Cmd.none )
+                    ( state
+                        |> setPlayerState (setTime (stringifyTime time) state.playerState)
+                        |> Active
+                    , Cmd.none
+                    )
 
         Paused ->
             case model of
                 InActive ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 Active state ->
-                    let
-                        playerState =
-                            state.playerState
-                    in
-                    let
-                        newPlayerState =
-                            { playerState | playState = OnPause }
-                    in
-                    ( Active { state | playerState = newPlayerState }, Cmd.none )
+                    ( state
+                        |> setPlayerState (setPlayState OnPause state.playerState)
+                        |> Active
+                    , Cmd.none
+                    )
 
         Played ->
             case model of
                 InActive ->
-                    ( model, Cmd.none )
+                    doNothing
 
                 Active state ->
-                    let
-                        playerState =
-                            state.playerState
-                    in
-                    let
-                        newPlayerState =
-                            { playerState | playState = OnPlay }
-                    in
-                    ( Active { state | playerState = newPlayerState }, Cmd.none )
+                    ( state
+                        |> setPlayerState (setPlayState OnPlay state.playerState)
+                        |> Active
+                    , Cmd.none
+                    )
 
         NoOp ->
-            ( model, Cmd.none )
+            doNothing
 
 
 stringifyTime : Float -> String
