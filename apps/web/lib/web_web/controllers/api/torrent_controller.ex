@@ -1,10 +1,18 @@
 defmodule WebWeb.Api.TorrentController do
+  alias Kaur.Result
   use WebWeb, :controller
 
   def index(conn, _params) do
-    case Web.Torrent.list() do
-      {:ok, torrents} -> json(conn, %{torrents: torrents})
-      {:error, reason} -> json(conn, %{error: reason})
-    end
+    Web.Torrent.list()
+    |> Result.either(
+      fn reason ->
+        conn
+        |> put_status(500)
+        |> json(%{error: reason})
+      end,
+      fn torrents ->
+        json(conn, %{torrents: torrents})
+      end
+    )
   end
 end

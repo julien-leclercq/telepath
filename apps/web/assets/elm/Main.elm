@@ -1,5 +1,6 @@
 module Main exposing (..)
 
+import Debug
 import Html exposing (Html)
 import Http
 import Navigation exposing (program)
@@ -118,7 +119,18 @@ updatePage page message model =
             ( { model | pageState = Loaded <| TorrentListPage torrentsList }, Cmd.none )
 
         ( TorrentsLoaded (Err error), _ ) ->
-            ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
+            let
+                _ =
+                    Debug.log "error loading torrents" error
+            in
+                ( { model | pageState = Loaded <| ErrorPage <| Just "Error loading torrents index" }, Cmd.none )
+
+        ( TorrentsMsg msg, TorrentListPage subModel ) ->
+            let
+                ( newModel, newMsg ) =
+                    TorrentsPage.update msg subModel
+            in
+                ( { model | pageState = Loaded <| TorrentListPage newModel }, Cmd.map TorrentsMsg newMsg )
 
         _ ->
             message

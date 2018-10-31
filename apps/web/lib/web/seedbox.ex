@@ -18,8 +18,4 @@ defmodule Web.Seedbox do
   def delete(id) do
     Telepath.Seedbox.delete(id)
   end
-
-  def create(params) do
-    Telepath.Seedbox.create(params)
-  end
 end

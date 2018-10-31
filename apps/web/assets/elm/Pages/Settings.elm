@@ -269,7 +269,6 @@ pushSeedbox model =
         AddSeedbox ( pendingSeedbox, _ ) ->
             pendingSeedbox
                 |> verifySeedbox
-                |> Debug.log "pushing seedbox from a AddSeedbox state"
                 |> (\verified ->
                         case verified of
                             Result.Ok toEncode ->
@@ -285,7 +284,6 @@ pushSeedbox model =
         ConfigSeedbox ( seedbox, pendingSeedbox, _ ) ->
             pendingSeedbox
                 |> verifySeedbox
-                |> Debug.log "pushing seedbox from a ConfigSeedbox state"
                 |> (\verified ->
                         case verified of
                             Result.Ok toEncode ->
