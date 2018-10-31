@@ -7,4 +7,4 @@ config :db, ecto_repos: [DB.Repo]
 config :db, DB.Repo, adapter: EctoMnesia.Adapter
 
 config :mnesia,
-  dir: 'priv/data/mnesia'
+  dir: '../../priv/data/mnesia'

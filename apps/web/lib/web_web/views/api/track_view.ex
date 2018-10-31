@@ -13,6 +13,7 @@ defmodule WebWeb.Api.TrackView do
     %{
       album: track.album,
       artist: track.artist,
+      duration: track.duration,
       title: track.title,
       id: track.id,
       path: track.filename

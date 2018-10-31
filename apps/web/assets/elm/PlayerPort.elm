@@ -1,9 +1,10 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), nothing, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), decodeCmdIn, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Json.Decode as Decode
 import Json.Encode as Serial
 
 
@@ -23,12 +24,18 @@ playStateToString state =
 
 
 type alias Model =
-    Maybe ( Track.Track, PlayState, String )
+    { track : Maybe Track.Track
+    , playState : PlayState
+    , time : String
+    }
 
 
-nothing : Model
-nothing =
-    Nothing
+init : Model
+init =
+    { track = Nothing
+    , playState = OnPause
+    , time = stringifyTime 0
+    }
 
 
 playerView : Model -> Html Msg
@@ -37,27 +44,37 @@ playerView model =
         displayTitle =
             Maybe.withDefault "Unknown track"
 
-        ( track, time ) =
-            case model of
+        ( track, time, totalTime ) =
+            case model.track of
                 Nothing ->
-                    ( "Choose a track !", "" )
+                    ( "Choose a track !", "", "" )
 
-                Just ( currentTrack, currentPlaystate, currentTime ) ->
-                    ( displayTitle currentTrack.title, currentTime )
+                Just currentTrack ->
+                    ( displayTitle currentTrack.title, model.time, formatTime currentTrack.duration )
     in
     div
         [ Attrs.id "player"
         , Attrs.class "level"
         ]
-        [ controlBlock
-        , span [ Attrs.class "column" ] [ text time ]
+        [ controlBlock model.playState
+        , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
         , span [ Attrs.class "column" ] [ text track ]
         ]
 
 
-controlBlock =
+controlBlock : PlayState -> Html Msg
+controlBlock playState =
+    let
+        playStateIcon =
+            case playState of
+                OnPlay ->
+                    "fas fa-pause"
+
+                OnPause ->
+                    "fas fa-play"
+    in
     div [ Attrs.class "player-controls column" ]
-        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class "fas fa-play" ] [] ]
+        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class playStateIcon ] [] ]
         ]
 
 
@@ -68,13 +85,48 @@ type PortOutMsg
 
 type Msg
     = TimeChange Float
+    | Paused
+    | Played
     | Send PortOutMsg
+    | NoOp
 
 
 port playerCmdOut : Serial.Value -> Cmd msg
 
 
-port playerCmdIn : (Float -> msg) -> Sub msg
+port playerCmdIn : (Serial.Value -> msg) -> Sub msg
+
+
+decodeCmdIn : Decode.Value -> Msg
+decodeCmdIn value =
+    value
+        |> (Decode.oneOf
+                [ Decode.map TimeChange Decode.float
+                , Decode.string
+                    |> Decode.andThen
+                        (\received ->
+                            case received of
+                                "pause" ->
+                                    Decode.succeed Paused
+
+                                "play" ->
+                                    Decode.succeed Played
+
+                                _ ->
+                                    let
+                                        failString =
+                                            "Trying to decoce incoming msg but msg " ++ received ++ " is not recognized"
+                                    in
+                                    let
+                                        _ =
+                                            Debug.log failString ()
+                                    in
+                                    Decode.fail failString
+                        )
+                ]
+                |> Decode.decodeValue
+           )
+        |> Result.withDefault NoOp
 
 
 sendPlayerCmd : PortOutMsg -> Cmd msg
@@ -93,27 +145,44 @@ update : Model -> Msg -> ( Model, Cmd Msg )
 update model msg =
     case msg of
         Send TogglePlay ->
-            case model of
+            case model.track of
                 Nothing ->
                     ( model, Cmd.none )
 
-                Just ( track, playstate, _ ) ->
+                Just track ->
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            ( Just ( track, OnPlay, stringifyTime 0 ), sendPlayerCmd (PlayTrack track) )
+            let
+                newModel =
+                    { model | track = Just track, playState = OnPlay, time = stringifyTime 0 }
+            in
+            ( newModel, sendPlayerCmd (PlayTrack track) )
 
         TimeChange time ->
-            model
-                |> Maybe.map (\( x, y, _ ) -> ( x, y, stringifyTime time ))
-                |> (\m -> ( m, Cmd.none ))
+            ( { model | time = stringifyTime time }, Cmd.none )
+
+        Paused ->
+            ( { model | playState = OnPause }, Cmd.none )
+
+        Played ->
+            ( { model | playState = OnPlay }, Cmd.none )
+
+        NoOp ->
+            ( model, Cmd.none )
 
 
+stringifyTime : Float -> String
 stringifyTime receivedTime =
     let
         totalSeconds =
-            floor receivedTime
+            round receivedTime
     in
+    formatTime totalSeconds
+
+
+formatTime : Int -> String
+formatTime totalSeconds =
     let
         ( minutes, seconds ) =
             ( totalSeconds // 60, modBy 60 totalSeconds )

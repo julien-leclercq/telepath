@@ -36,17 +36,13 @@ type alias Model =
 baseModel : Navigation.Key -> Model
 baseModel navKey =
     { pageState = Loaded <| ErrorPage Nothing
-    , playerState = PlayerPort.nothing
+    , playerState = PlayerPort.init
     , navKey = navKey
     }
 
 
 init : flags -> Url.Url -> Navigation.Key -> ( Model, Cmd Message )
 init _ location navKey =
-    let
-        _ =
-            Debug.log "debugging routing" location
-    in
     setRoute
         (Routes.fromLocation
             location
@@ -280,7 +276,7 @@ main =
     let
         subscriptions =
             \_ ->
-                PlayerPort.playerCmdIn PlayerPort.TimeChange
+                PlayerPort.playerCmdIn PlayerPort.decodeCmdIn
                     |> Sub.map PlayerMsg
 
         -- Sub.none

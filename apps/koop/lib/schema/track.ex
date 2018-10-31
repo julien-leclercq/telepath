@@ -13,10 +13,11 @@ defmodule Koop.Schema.Track do
     field(:artist, :string)
     field(:filename, :string)
     field(:album, :string)
+    field(:duration, :float)
   end
 
   @required_params [:filename]
-  @non_required_params [:title, :track, :artist, :album]
+  @non_required_params [:title, :track, :artist, :album, :duration]
 
   def changeset(struct \\ %__MODULE__{}, params) do
     struct
@@ -50,5 +51,23 @@ defmodule Koop.Schema.Track do
     |> Result.or_else(fn _ ->
       Repo.insert(track)
     end)
+  end
+
+  def update_or_create(%Ecto.Changeset{} = changeset) do
+    {_, filename} = fetch_field(changeset, :filename)
+
+    __MODULE__
+    |> Repo.get_by(filename: filename)
+    |> Result.from_value
+    |> Result.either(
+      fn _ ->
+        Repo.insert(changeset)
+      end,
+      fn track ->
+        track
+        |> change(changeset.changes)
+        |> Repo.update
+      end
+    )
   end
 end
