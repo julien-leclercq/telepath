@@ -1,0 +1,23 @@
+{
+  "recorded_at": "2018-08-21T18:26:52.089548Z",
+  "file": "test/koop/library_test.exs",
+  "data": {
+    "track": "10",
+    "title": "Die Brücke",
+    "start_time": "0.000000",
+    "size": "47838646",
+    "probe_score": 100,
+    "nb_streams": 2,
+    "nb_programs": 0,
+    "format_name": "flac",
+    "format_long_name": "raw FLAC",
+    "filename": "test/support/panda_dub_die_brucke.flac",
+    "duration": "429.000000",
+    "date": "2015",
+    "comment": "Visit http://pandadub.bandcamp.com",
+    "bit_rate": "892095",
+    "artist": "Panda Dub",
+    "album_artist": "Panda Dub",
+    "album": "The Lost Ship"
+  }
+}
