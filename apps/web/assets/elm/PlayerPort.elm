@@ -103,21 +103,27 @@ playerView model =
 controlBlock : Model -> Html Msg
 controlBlock model =
     let
-        playStateIcon =
+        ( playStateIcon, playEventAsList ) =
             case model of
                 InActive ->
-                    "fas fa-play inactive"
+                    ( "fas fa-play inactive", [] )
 
                 Active { playerState } ->
+                    let
+                        playEvent =
+                            [ Events.onClick <| Send TogglePlay ]
+                    in
                     case playerState.playState of
                         OnPlay ->
-                            "fas fa-pause"
+                            ( "fas fa-pause", playEvent )
 
                         OnPause ->
-                            "fas fa-play"
+                            ( "fas fa-play", playEvent )
     in
     div [ Attrs.class "player-controls column" ]
-        [ button [ Attrs.class "icon", Events.onClick <| Send TogglePlay ] [ i [ Attrs.class playStateIcon ] [] ]
+        [ button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-backward" ] [] ]
+        , button (Attrs.class "icon" :: playEventAsList) [ i [ Attrs.class playStateIcon ] [] ]
+        , button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-forward" ] [] ]
         ]
 
 
