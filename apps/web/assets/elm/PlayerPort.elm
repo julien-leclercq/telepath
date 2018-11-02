@@ -1,4 +1,4 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), decodeCmdIn, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), addToCurrentPlaylist, decodeCmdIn, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
@@ -248,7 +248,7 @@ update model msg =
         AddToCurrentPlayList track ->
             case model of
                 InActive ->
-                    ( model, sendPlayerCmd (PlayTrack track) )
+                    ( initActive track, sendPlayerCmd (PlayTrack track) )
 
                 Active state ->
                     ( Active { state | currentPlaylist = state.currentPlaylist ++ [ track ] }, Cmd.none )
@@ -289,3 +289,9 @@ playTrack track =
     track
         |> PlayTrack
         |> Send
+
+
+addToCurrentPlaylist : Track -> Msg
+addToCurrentPlaylist track =
+    track
+        |> AddToCurrentPlayList

@@ -19,6 +19,7 @@ type alias Model =
 type Msg
     = TrackListResponse RemoteTrackList
     | PlayTrack Track
+    | AddToCurrentPlaylist Track
     | Filter String
 
 
@@ -51,6 +52,9 @@ update msg model =
 
         Filter filter ->
             ( ( applyFilter model filter, Cmd.none ), NoOp )
+
+        AddToCurrentPlaylist track ->
+            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.addToCurrentPlaylist track )
 
 
 applyFilter : Model -> String -> Model

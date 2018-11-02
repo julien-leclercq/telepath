@@ -4,6 +4,7 @@ import Data.Track exposing (Track)
 import Html exposing (div, input, span, table, tbody, td, text, th, thead, tr)
 import Html.Attributes as Attrs
 import Html.Events as Events
+import Json.Decode as Decode
 import Pages.Tracks exposing (..)
 import PlayerPort
 import RemoteData
@@ -18,7 +19,8 @@ view model =
                 , table [ Attrs.class "table" ]
                     [ thead []
                         [ tr []
-                            [ th [] [ text "title" ]
+                            [ th [] []
+                            , th [] [ text "title" ]
                             , th [] [ text "artist" ]
                             , th [] [ text "album" ]
                             ]
@@ -44,7 +46,18 @@ trackView track =
                     span [] [ text title ]
     in
     tr [ Events.onClick <| PlayTrack track ]
-        [ td [] [ displayInfo track.title ]
+        [ td []
+            [ Html.button
+                [ Events.custom "click" <|
+                    Decode.succeed
+                        { stopPropagation = True
+                        , preventDefault = True
+                        , message = AddToCurrentPlaylist track
+                        }
+                ]
+                [ text "+" ]
+            ]
+        , td [] [ displayInfo track.title ]
         , td [] [ displayInfo track.artist ]
         , td [] [ displayInfo track.album ]
         ]
