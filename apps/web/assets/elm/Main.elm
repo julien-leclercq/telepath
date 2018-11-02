@@ -30,7 +30,10 @@ type PageState
 
 
 type alias Model =
-    { pageState : PageState, playerState : PlayerPort.Model, navKey : Navigation.Key }
+    { pageState : PageState
+    , playerState : PlayerPort.Model
+    , navKey : Navigation.Key
+    }
 
 
 baseModel : Navigation.Key -> Model
@@ -68,7 +71,7 @@ renderApp : PlayerPort.Model -> pageModel -> (pageModel -> Html pageMsg) -> (pag
 renderApp playerModel pageModel pageView msgMapper =
     let
         mappedPlayerView =
-            Html.map PlayerMsg <| playerView playerModel
+            Maybe.map (Html.map PlayerMsg) (playerView playerModel)
     in
     pageModel
         |> pageView

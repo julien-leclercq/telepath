@@ -5,18 +5,22 @@ import Html.Attributes as Attrs
 import Routes
 
 
-appLayout : Html msg -> Html msg -> Html msg
+appLayout : Maybe (Html msg) -> Html msg -> Html msg
 appLayout playerView view =
     div []
-        [ navView
-        , div [ Attrs.class "section" ]
+        ([ navView
+         , div [ Attrs.class "section" ]
             [ div [ Attrs.class "columns" ]
                 [ menuView
                 , view
                 ]
             ]
-        , playerView
-        ]
+         ]
+            ++ (playerView
+                    |> Maybe.map List.singleton
+                    |> Maybe.withDefault []
+               )
+        )
 
 
 navView : Html msg

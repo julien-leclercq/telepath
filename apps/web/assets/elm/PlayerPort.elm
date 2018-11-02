@@ -30,6 +30,14 @@ type alias PlayerState =
     }
 
 
+initPlayerState : Track -> PlayerState
+initPlayerState track =
+    { track = track
+    , playState = OnPause
+    , time = stringifyTime 0
+    }
+
+
 setTime : String -> PlayerState -> PlayerState
 setTime time playerState =
     { playerState | time = time }
@@ -62,42 +70,40 @@ init =
 initActive : Track -> Model
 initActive track =
     Active
-        { playerState =
-            { track = track
-            , playState = OnPause
-            , time = stringifyTime 0
-            }
+        { playerState = initPlayerState track
         , currentPlaylist = []
         , pastPlaylist = []
         }
 
 
-playerView : Model -> Html Msg
+playerView : Model -> Maybe (Html Msg)
 playerView model =
-    let
-        displayTitle =
-            Maybe.withDefault "Unknown track"
+    case model of
+        InActive ->
+            Nothing
 
-        ( track, time, totalTime ) =
-            case model of
-                InActive ->
-                    ( "Choose a track !", "", "" )
+        Active { playerState, currentPlaylist } ->
+            let
+                displayTitle =
+                    Maybe.withDefault "Unknown track"
 
-                Active { playerState } ->
+                ( track, time, totalTime ) =
                     let
                         currentTrack =
                             playerState.track
                     in
                     ( displayTitle currentTrack.title, playerState.time, formatTime currentTrack.duration )
-    in
-    div
-        [ Attrs.id "player"
-        , Attrs.class "level"
-        ]
-        [ controlBlock model
-        , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
-        , span [ Attrs.class "column" ] [ text track ]
-        ]
+            in
+            Just
+                (div
+                    [ Attrs.id "player"
+                    , Attrs.class "level"
+                    ]
+                    [ controlBlock model
+                    , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
+                    , span [ Attrs.class "column" ] [ text track ]
+                    ]
+                )
 
 
 controlBlock : Model -> Html Msg
@@ -139,6 +145,11 @@ type Msg
     | Send PortOutMsg
     | NoOp
     | AddToCurrentPlayList Track
+    | Next
+
+
+
+-- | Previous
 
 
 port playerCmdOut : Serial.Value -> Cmd msg
@@ -207,7 +218,14 @@ update model msg =
                     ( model, sendPlayerCmd TogglePlay )
 
         Send (PlayTrack track) ->
-            ( initActive track, sendPlayerCmd (PlayTrack track) )
+            case model of
+                InActive ->
+                    ( initActive track, sendPlayerCmd (PlayTrack track) )
+
+                Active state ->
+                    ( Active { state | pastPlaylist = state.playerState.track :: state.pastPlaylist }
+                    , sendPlayerCmd <| PlayTrack track
+                    )
 
         TimeChange time ->
             case model of
@@ -252,6 +270,18 @@ update model msg =
 
                 Active state ->
                     ( Active { state | currentPlaylist = state.currentPlaylist ++ [ track ] }, Cmd.none )
+
+        Next ->
+            case model of
+                InActive ->
+                    ( model, Cmd.none )
+
+                Active state ->
+                    let
+                        newModel =
+                            model
+                    in
+                    ( newModel, Cmd.none )
 
         NoOp ->
             doNothing
