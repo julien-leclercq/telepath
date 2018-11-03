@@ -76,13 +76,13 @@ initActive track =
         }
 
 
-playerView : Model -> Maybe (Html Msg)
+playerView : Model -> Html Msg
 playerView model =
     case model of
         InActive ->
-            Nothing
+            text ""
 
-        Active { playerState, currentPlaylist } ->
+        Active ({ playerState, currentPlaylist, pastPlaylist } as state) ->
             let
                 displayTitle =
                     Maybe.withDefault "Unknown track"
@@ -94,42 +94,48 @@ playerView model =
                     in
                     ( displayTitle currentTrack.title, playerState.time, formatTime currentTrack.duration )
             in
-            Just
-                (div
-                    [ Attrs.id "player"
-                    , Attrs.class "level"
-                    ]
-                    [ controlBlock model
-                    , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
-                    , span [ Attrs.class "column" ] [ text track ]
-                    ]
-                )
+            div
+                [ Attrs.id "player"
+                , Attrs.class "level"
+                ]
+                [ controlBlock state
+                , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
+                , span [ Attrs.class "column" ] [ text track ]
+                ]
 
 
-controlBlock : Model -> Html Msg
-controlBlock model =
+controlBlock :
+    { playerState : PlayerState
+    , currentPlaylist : List Track
+    , pastPlaylist : List Track
+    }
+    -> Html Msg
+controlBlock { playerState, currentPlaylist, pastPlaylist } =
     let
         ( playStateIcon, playEventAsList ) =
-            case model of
-                InActive ->
-                    ( "fas fa-play inactive", [] )
+            let
+                playEvent =
+                    [ Events.onClick <| Send TogglePlay ]
+            in
+            case playerState.playState of
+                OnPlay ->
+                    ( "fas fa-pause", playEvent )
 
-                Active { playerState } ->
-                    let
-                        playEvent =
-                            [ Events.onClick <| Send TogglePlay ]
-                    in
-                    case playerState.playState of
-                        OnPlay ->
-                            ( "fas fa-pause", playEvent )
+                OnPause ->
+                    ( "fas fa-play", playEvent )
 
-                        OnPause ->
-                            ( "fas fa-play", playEvent )
+        nextEvent =
+            case currentPlaylist of
+                [] ->
+                    []
+
+                _ ->
+                    [ Events.onClick Next ]
     in
     div [ Attrs.class "player-controls column" ]
         [ button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-backward" ] [] ]
         , button (Attrs.class "icon" :: playEventAsList) [ i [ Attrs.class playStateIcon ] [] ]
-        , button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-forward" ] [] ]
+        , button (Attrs.class "icon" :: nextEvent) [ i [ Attrs.class "fas fa-forward" ] [] ]
         ]
 
 
@@ -276,12 +282,21 @@ update model msg =
                 InActive ->
                     ( model, Cmd.none )
 
-                Active state ->
-                    let
-                        newModel =
-                            model
-                    in
-                    ( newModel, Cmd.none )
+                Active { playerState, currentPlaylist, pastPlaylist } ->
+                    case currentPlaylist of
+                        nextTrack :: nextPlaylist ->
+                            let
+                                newModel =
+                                    Active
+                                        { playerState = initPlayerState nextTrack
+                                        , currentPlaylist = nextPlaylist
+                                        , pastPlaylist = playerState.track :: pastPlaylist
+                                        }
+                            in
+                            ( newModel, sendPlayerCmd <| PlayTrack nextTrack )
+
+                        [] ->
+                            ( model, Cmd.none )
 
         NoOp ->
             doNothing

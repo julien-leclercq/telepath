@@ -71,7 +71,7 @@ renderApp : PlayerPort.Model -> pageModel -> (pageModel -> Html pageMsg) -> (pag
 renderApp playerModel pageModel pageView msgMapper =
     let
         mappedPlayerView =
-            Maybe.map (Html.map PlayerMsg) (playerView playerModel)
+            Html.map PlayerMsg <| playerView playerModel
     in
     pageModel
         |> pageView
