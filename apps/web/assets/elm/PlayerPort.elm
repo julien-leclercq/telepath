@@ -27,6 +27,7 @@ type alias PlayerState =
     { track : Track
     , playState : PlayState
     , time : String
+    , progress : Float
     }
 
 
@@ -35,12 +36,17 @@ initPlayerState track =
     { track = track
     , playState = OnPause
     , time = stringifyTime 0
+    , progress = 0
     }
 
 
 setTime : String -> PlayerState -> PlayerState
 setTime time playerState =
     { playerState | time = time }
+
+
+setProgress progress playerState =
+    { playerState | progress = progress }
 
 
 setPlayState : PlayState -> PlayerState -> PlayerState
@@ -99,8 +105,10 @@ playerView model =
                 , Attrs.class "level"
                 ]
                 [ controlBlock state
-                , span [ Attrs.class "column" ] [ text (time ++ " / " ++ totalTime) ]
-                , span [ Attrs.class "column" ] [ text track ]
+                , span [ Attrs.class "player-elem level-left" ] [ text time ]
+                , progressBar playerState
+                , span [ Attrs.class "player-elem" ] [ text totalTime ]
+                , span [ Attrs.class "player-elem" ] [ text track ]
                 ]
 
 
@@ -132,10 +140,44 @@ controlBlock { playerState, currentPlaylist, pastPlaylist } =
                 _ ->
                     [ Events.onClick Next ]
     in
-    div [ Attrs.class "player-controls column" ]
+    div [ Attrs.id "player-controls", Attrs.class "player-elem level-left" ]
         [ button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-backward" ] [] ]
         , button (Attrs.class "icon" :: playEventAsList) [ i [ Attrs.class playStateIcon ] [] ]
         , button (Attrs.class "icon" :: nextEvent) [ i [ Attrs.class "fas fa-forward" ] [] ]
+        ]
+
+
+progressBar : PlayerState -> Html Msg
+progressBar playerState =
+    let
+        flip f a b =
+            f b a
+
+        progress =
+            (playerState.progress * 100)
+                |> String.fromFloat
+                |> flip String.append "%"
+    in
+    div [ Attrs.class "player-elem level-left", Attrs.style "width" "521px" ]
+        [ div [ Attrs.class "player-timeline", Attrs.style "height" "1px", Attrs.style "background" "#ccc", Attrs.style "width" "100%" ]
+            []
+        , div
+            [ Attrs.class "player-progress-done"
+            , Attrs.style "background" "red"
+            , Attrs.style "width" progress
+            , Attrs.style "height" "1px"
+            , Attrs.style "min-width" "1px"
+            ]
+            []
+
+        -- , div
+        --     [ Attrs.class "player-progress-cursor"
+        --     , Attrs.style "width" "5px"
+        --     , Attrs.style "height" "6px"
+        --     , Attrs.style "background" "red"
+        --     , Attrs.style "left" progress
+        --     ]
+        --     []
         ]
 
 
@@ -239,8 +281,20 @@ update model msg =
                     doNothing
 
                 Active state ->
+                    let
+                        progress =
+                            let
+                                durationFloat =
+                                    toFloat state.playerState.track.duration
+                            in
+                            time / durationFloat
+                    in
                     ( state
-                        |> setPlayerState (setTime (stringifyTime time) state.playerState)
+                        |> setPlayerState
+                            (state.playerState
+                                |> setTime (stringifyTime time)
+                                |> setProgress progress
+                            )
                         |> Active
                     , Cmd.none
                     )
