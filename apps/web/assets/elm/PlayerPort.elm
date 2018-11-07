@@ -45,8 +45,14 @@ setTime time playerState =
     { playerState | time = time }
 
 
+setProgress : Float -> PlayerState -> PlayerState
 setProgress progress playerState =
     { playerState | progress = progress }
+
+
+setTrack : Track -> PlayerState -> PlayerState
+setTrack track playerState =
+    { playerState | track = track }
 
 
 setPlayState : PlayState -> PlayerState -> PlayerState
@@ -271,7 +277,13 @@ update model msg =
                     ( initActive track, sendPlayerCmd (PlayTrack track) )
 
                 Active state ->
-                    ( Active { state | pastPlaylist = state.playerState.track :: state.pastPlaylist }
+                    ( Active
+                        { state
+                            | pastPlaylist = state.playerState.track :: state.pastPlaylist
+                            , playerState =
+                                state.playerState
+                                    |> setTrack track
+                        }
                     , sendPlayerCmd <| PlayTrack track
                     )
 
