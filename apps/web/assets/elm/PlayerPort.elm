@@ -194,10 +194,7 @@ type Msg
     | NoOp
     | AddToCurrentPlayList Track
     | Next
-
-
-
--- | Previous
+    | Previous
 
 
 port playerCmdOut : Serial.Value -> Cmd msg
@@ -357,6 +354,27 @@ update model msg =
 
                         [] ->
                             ( model, Cmd.none )
+
+        Previous ->
+            case model of
+                InActive ->
+                    doNothing
+
+                Active { playerState, currentPlaylist, pastPlaylist } ->
+                    case pastPlaylist of
+                        previousTrack :: previousPlaylist ->
+                            let
+                                newModel =
+                                    Active
+                                        { playerState = initPlayerState previousTrack
+                                        , currentPlaylist = playerState.track :: currentPlaylist
+                                        , pastPlaylist = previousPlaylist
+                                        }
+                            in
+                            ( newModel, sendPlayerCmd <| PlayTrack previousTrack )
+
+                        [] ->
+                            doNothing
 
         NoOp ->
             doNothing
