@@ -164,26 +164,20 @@ progressBar playerState =
                 |> String.fromFloat
                 |> flip String.append "%"
     in
-    div [ Attrs.class "player-elem level-left", Attrs.style "width" "521px" ]
-        [ div [ Attrs.class "player-timeline", Attrs.style "height" "1px", Attrs.style "background" "#ccc", Attrs.style "width" "100%" ]
-            []
+    div
+        [ Attrs.id "timeline-wrapper"
+        , Attrs.class "player-elem level-left"
+        ]
+        [ div [ Attrs.class "player-timeline-background" ] []
         , div
             [ Attrs.class "player-progress-done"
-            , Attrs.style "background" "red"
             , Attrs.style "width" progress
+            , Attrs.style "background" "red"
             , Attrs.style "height" "1px"
             , Attrs.style "min-width" "1px"
+            , Attrs.style "position" "absolute"
             ]
             []
-
-        -- , div
-        --     [ Attrs.class "player-progress-cursor"
-        --     , Attrs.style "width" "5px"
-        --     , Attrs.style "height" "6px"
-        --     , Attrs.style "background" "red"
-        --     , Attrs.style "left" progress
-        --     ]
-        --     []
         ]
 
 
