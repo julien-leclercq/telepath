@@ -1,4 +1,4 @@
-port module PlayerPort exposing (Model, Msg(..), PlayState(..), PortOutMsg(..), addToCurrentPlaylist, decodeCmdIn, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, playerView, sendPlayerCmd, update)
+port module Player exposing (Model(..), Msg(..), PlayState(..), PlayerState, PortOutMsg(..), addToCurrentPlaylist, decodeCmdIn, formatTime, init, playStateToString, playTrack, playerCmdIn, playerCmdOut, sendPlayerCmd, update)
 
 import Data.Track as Track exposing (Track)
 import Html exposing (Html, a, aside, audio, button, div, header, i, li, nav, p, source, span, text, ul)
@@ -6,6 +6,11 @@ import Html.Attributes as Attrs
 import Html.Events as Events
 import Json.Decode as Decode
 import Json.Encode as Serial
+import Utils.Playlist as Playlist exposing (Playlist(..))
+
+
+
+---------------- MODEL
 
 
 type PlayState
@@ -64,8 +69,7 @@ type Model
     = InActive
     | Active
         { playerState : PlayerState
-        , currentPlaylist : List Track
-        , pastPlaylist : List Track
+        , playlist : Playlist Track
         }
 
 
@@ -83,107 +87,19 @@ initActive : Track -> Model
 initActive track =
     Active
         { playerState = initPlayerState track
-        , currentPlaylist = []
-        , pastPlaylist = []
+        , playlist = Playlist.new track
         }
 
 
-playerView : Model -> Html Msg
-playerView model =
-    case model of
-        InActive ->
-            text ""
 
-        Active ({ playerState, currentPlaylist, pastPlaylist } as state) ->
-            let
-                displayTitle =
-                    Maybe.withDefault "Unknown track"
-
-                ( track, time, totalTime ) =
-                    let
-                        currentTrack =
-                            playerState.track
-                    in
-                    ( displayTitle currentTrack.title, playerState.time, formatTime currentTrack.duration )
-            in
-            div
-                [ Attrs.id "player"
-                , Attrs.class "level"
-                ]
-                [ controlBlock state
-                , span [ Attrs.class "player-elem level-left" ] [ text time ]
-                , progressBar playerState
-                , span [ Attrs.class "player-elem" ] [ text totalTime ]
-                , span [ Attrs.class "player-elem" ] [ text track ]
-                ]
-
-
-controlBlock :
-    { playerState : PlayerState
-    , currentPlaylist : List Track
-    , pastPlaylist : List Track
-    }
-    -> Html Msg
-controlBlock { playerState, currentPlaylist, pastPlaylist } =
-    let
-        ( playStateIcon, playEventAsList ) =
-            let
-                playEvent =
-                    [ Events.onClick <| Send TogglePlay ]
-            in
-            case playerState.playState of
-                OnPlay ->
-                    ( "fas fa-pause", playEvent )
-
-                OnPause ->
-                    ( "fas fa-play", playEvent )
-
-        nextEvent =
-            case currentPlaylist of
-                [] ->
-                    []
-
-                _ ->
-                    [ Events.onClick Next ]
-    in
-    div [ Attrs.id "player-controls", Attrs.class "player-elem level-left" ]
-        [ button (Attrs.class "icon" :: []) [ i [ Attrs.class "fas fa-backward" ] [] ]
-        , button (Attrs.class "icon" :: playEventAsList) [ i [ Attrs.class playStateIcon ] [] ]
-        , button (Attrs.class "icon" :: nextEvent) [ i [ Attrs.class "fas fa-forward" ] [] ]
-        ]
-
-
-progressBar : PlayerState -> Html Msg
-progressBar playerState =
-    let
-        flip f a b =
-            f b a
-
-        progress =
-            (playerState.progress * 100)
-                |> String.fromFloat
-                |> flip String.append "%"
-    in
-    div
-        [ Attrs.id "timeline-wrapper"
-        , Attrs.class "player-elem level-left"
-        ]
-        [ div [ Attrs.class "player-timeline-background" ] []
-        , div
-            [ Attrs.class "player-progress-done"
-            , Attrs.style "width" progress
-            , Attrs.style "background" "red"
-            , Attrs.style "height" "1px"
-            , Attrs.style "min-width" "1px"
-            , Attrs.style "position" "absolute"
-            ]
-            []
-        ]
+----------- VIEW
+---------------- UPDATE
 
 
 type PortOutMsg
     = TogglePlay
     | PlayTrack Track
+    | Prepare Track
 
 
 type Msg
@@ -243,6 +159,9 @@ sendPlayerCmd msg =
 
         PlayTrack track ->
             Serial.object [ ( "action", Serial.string "playTrack" ), ( "track", Track.encode track ) ]
+
+        Prepare track ->
+            Serial.object [ ( "action", Serial.string "prepareTrack" ), ( "track", Track.encode track ) ]
     )
         |> playerCmdOut
 
@@ -270,13 +189,22 @@ update model msg =
                 Active state ->
                     ( Active
                         { state
-                            | pastPlaylist = state.playerState.track :: state.pastPlaylist
+                            | playlist =
+                                Playlist.add track state.playlist
                             , playerState =
                                 state.playerState
                                     |> setTrack track
                         }
                     , sendPlayerCmd <| PlayTrack track
                     )
+
+        Send (Prepare track) ->
+            case model of
+                InActive ->
+                    ( initActive track, sendPlayerCmd (Prepare track) )
+
+                Active _ ->
+                    doNothing
 
         TimeChange time ->
             case model of
@@ -329,30 +257,29 @@ update model msg =
         AddToCurrentPlayList track ->
             case model of
                 InActive ->
-                    ( initActive track, sendPlayerCmd (PlayTrack track) )
+                    ( initActive track, sendPlayerCmd (Prepare track) )
 
                 Active state ->
-                    ( Active { state | currentPlaylist = state.currentPlaylist ++ [ track ] }, Cmd.none )
+                    ( Active { state | playlist = Playlist.addAtEnd track state.playlist }, Cmd.none )
 
         Next ->
             case model of
                 InActive ->
-                    ( model, Cmd.none )
+                    doNothing
 
-                Active { playerState, currentPlaylist, pastPlaylist } ->
-                    case currentPlaylist of
-                        nextTrack :: nextPlaylist ->
+                Active ({ playerState, playlist } as state) ->
+                    case Playlist.down playlist of
+                        Just newPlaylist ->
                             let
                                 newModel =
                                     Active
-                                        { playerState = initPlayerState nextTrack
-                                        , currentPlaylist = nextPlaylist
-                                        , pastPlaylist = playerState.track :: pastPlaylist
+                                        { state
+                                            | playlist = newPlaylist
                                         }
                             in
-                            ( newModel, sendPlayerCmd <| PlayTrack nextTrack )
+                            ( newModel, sendPlayerCmd <| PlayTrack (Playlist.getCurrent newPlaylist) )
 
-                        [] ->
+                        Nothing ->
                             ( model, Cmd.none )
 
         Previous ->
@@ -360,20 +287,19 @@ update model msg =
                 InActive ->
                     doNothing
 
-                Active { playerState, currentPlaylist, pastPlaylist } ->
-                    case pastPlaylist of
-                        previousTrack :: previousPlaylist ->
+                Active ({ playerState, playlist } as state) ->
+                    case Playlist.up playlist of
+                        Just newPlaylist ->
                             let
                                 newModel =
                                     Active
-                                        { playerState = initPlayerState previousTrack
-                                        , currentPlaylist = playerState.track :: currentPlaylist
-                                        , pastPlaylist = previousPlaylist
+                                        { state
+                                            | playlist = newPlaylist
                                         }
                             in
-                            ( newModel, sendPlayerCmd <| PlayTrack previousTrack )
+                            ( newModel, sendPlayerCmd <| PlayTrack (Playlist.getCurrent newPlaylist) )
 
-                        [] ->
+                        Nothing ->
                             doNothing
 
         NoOp ->

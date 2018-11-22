@@ -6,7 +6,7 @@ import Html.Attributes as Attrs
 import Html.Events as Events
 import Json.Decode as Decode
 import Pages.Tracks exposing (..)
-import PlayerPort
+import Player
 import RemoteData
 
 

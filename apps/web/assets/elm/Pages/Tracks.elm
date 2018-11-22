@@ -1,7 +1,7 @@
 module Pages.Tracks exposing (ExtMsg(..), Model, Msg(..), init, update)
 
 import Data.Track exposing (Track)
-import PlayerPort
+import Player
 import RemoteData exposing (RemoteData, WebData)
 import Request.Tracks
 
@@ -25,7 +25,7 @@ type Msg
 
 type ExtMsg
     = NoOp
-    | PlayerMsg PlayerPort.Msg
+    | PlayerMsg Player.Msg
 
 
 init : ( Model, Cmd Msg )
@@ -48,13 +48,13 @@ update msg model =
                 trackRoute =
                     "api/tracks/" ++ String.fromInt track.id
             in
-            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.playTrack track )
+            ( ( model, Cmd.none ), PlayerMsg <| Player.playTrack track )
 
         Filter filter ->
             ( ( applyFilter model filter, Cmd.none ), NoOp )
 
         AddToCurrentPlaylist track ->
-            ( ( model, Cmd.none ), PlayerMsg <| PlayerPort.addToCurrentPlaylist track )
+            ( ( model, Cmd.none ), PlayerMsg <| Player.addToCurrentPlaylist track )
 
 
 applyFilter : Model -> String -> Model

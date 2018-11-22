@@ -9,7 +9,8 @@ const app = Elm.Elm.Main.init({ node: container, flags: "" })
 
 app.ports.playerCmdOut.subscribe(function (ctrl) {
   const actions = {
-    "playTrack": (ctrl) => swapTrack(ctrl.track.route),
+    "playTrack": (ctrl) => playTrack(ctrl.track.route),
+    "prepareTrack": (ctrl) => swapTrack(ctrl.track.route),
     "togglePlay": (_ctrl) => {
       if (track) {
         track.paused ? track.play() : track.pause()
@@ -28,6 +29,11 @@ function swapTrack(trackPath) {
   track.ontimeupdate = (e) => handleTimeChange(e.target)
   track.onpause = (e) => handlePause(e.target)
   track.onplay = (e) => handlePLay(e.target)
+  playing = false
+}
+
+function playTrack(trackPath) {
+  swapTrack(trackPath)
   track.play()
   playing = true
 }

@@ -8,10 +8,11 @@ import Http
 import Pages.Settings as SettingsPage
 import Pages.Torrents as TorrentsPage
 import Pages.Tracks as TracksPage
-import PlayerPort exposing (playerView)
+import Player
 import Routes
 import Url
 import View exposing (appLayout, errorDiv)
+import Views.Player as PlayerView
 import Views.Settings as Settings
 import Views.TorrentList.List as TorrentList
 import Views.TrackList as TrackList
@@ -31,7 +32,7 @@ type PageState
 
 type alias Model =
     { pageState : PageState
-    , playerState : PlayerPort.Model
+    , playerState : Player.Model
     , navKey : Navigation.Key
     }
 
@@ -39,7 +40,7 @@ type alias Model =
 baseModel : Navigation.Key -> Model
 baseModel navKey =
     { pageState = Loaded <| ErrorPage Nothing
-    , playerState = PlayerPort.init
+    , playerState = Player.init
     , navKey = navKey
     }
 
@@ -67,11 +68,11 @@ getPage pageState =
 -- View
 
 
-renderApp : PlayerPort.Model -> pageModel -> (pageModel -> Html pageMsg) -> (pageMsg -> Message) -> Html Message
+renderApp : Player.Model -> pageModel -> (pageModel -> Html pageMsg) -> (pageMsg -> Message) -> Html Message
 renderApp playerModel pageModel pageView msgMapper =
     let
         mappedPlayerView =
-            Html.map PlayerMsg <| playerView playerModel
+            Html.map PlayerMsg <| PlayerView.view playerModel
     in
     pageModel
         |> pageView
@@ -106,7 +107,7 @@ mainView model =
 type Message
     = ClickedLink Browser.UrlRequest
     | None
-    | PlayerMsg PlayerPort.Msg
+    | PlayerMsg Player.Msg
     | UrlChange Url.Url
     | SettingsMsg SettingsPage.Msg
     | TorrentsMsg TorrentsPage.Msg
@@ -198,7 +199,7 @@ updatePage page message model =
                         TracksPage.PlayerMsg playerMsg ->
                             let
                                 ( updatedPlayerState, newPlayerCmd ) =
-                                    PlayerPort.update model.playerState playerMsg
+                                    Player.update model.playerState playerMsg
                             in
                             ( updatedPlayerState, Cmd.map PlayerMsg newPlayerCmd )
             in
@@ -207,7 +208,7 @@ updatePage page message model =
         ( PlayerMsg msg, _ ) ->
             let
                 ( newPlayerState, newPlayerCmd ) =
-                    PlayerPort.update model.playerState msg
+                    Player.update model.playerState msg
             in
             ( { model | playerState = newPlayerState }, Cmd.map PlayerMsg newPlayerCmd )
 
@@ -279,7 +280,7 @@ main =
     let
         subscriptions =
             \_ ->
-                PlayerPort.playerCmdIn PlayerPort.decodeCmdIn
+                Player.playerCmdIn Player.decodeCmdIn
                     |> Sub.map PlayerMsg
 
         -- Sub.none
