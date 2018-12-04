@@ -166,7 +166,9 @@ defmodule Library.InfosFetcher do
             end)
             |> Result.map(fn children -> {:dir, children} end)
           else
-            Result.ok(:file)
+            path
+            |> get_track_infos()
+            |> Result.ok()
           end
         end
 
@@ -177,7 +179,7 @@ defmodule Library.InfosFetcher do
         )
     end
 
-    @spec get_track_infos(Path.t()) :: Map.t()
+    @spec get_track_infos(Path.t()) :: Reuslt.result_tuple()
     def get_track_infos(path) do
       unless Path.extname(path) in @supported_formats do
         Result.error({:unknown_format, path})
