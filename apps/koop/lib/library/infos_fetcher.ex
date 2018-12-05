@@ -37,36 +37,21 @@ defmodule Library.InfosFetcher do
 
     defstruct [:tasks_queue, :tasks_state, :tasks_results, :tasks_errors, :available_workers]
 
-    def start_link(path) do
-      GenServer.start_link(__MODULE__, [path], name: __MODULE__)
+    def start_link() do
+      GenServer.start_link(__MODULE__, [], name: __MODULE__)
     end
 
     @impl true
-    def init(path) do
+    def init(_) do
       state =
         %__MODULE__{
-          tasks_queue: [
-            {:fetch_infos, path}
-          ],
+          tasks_queue: [],
           tasks_state: :in_progress,
           tasks_results: [],
           available_workers: @worker_amount
         }
-        |> try_to_work()
-
-      Logger.info("starting Library.InfosFetcher.Dispatcher with path : #{path}")
 
       {:ok, state}
-    end
-
-    @impl true
-    def handle_continue(
-          :after_init,
-          state
-        ) do
-      Logger.debug("handle continue")
-      state = try_to_work(state)
-      {:no_reply, state}
     end
 
     @impl true
@@ -74,6 +59,7 @@ defmodule Library.InfosFetcher do
 
     @impl true
     def handle_cast({:add_path, path}, state) do
+      Logger.info "Infos Fetcher adding path and its children : #{path}"
       state = %{
         state
         | tasks_queue: [{:fetch_infos, path} | state.tasks_queue]
@@ -156,6 +142,7 @@ defmodule Library.InfosFetcher do
           if File.dir?(path) do
             path
             |> File.ls()
+            # Do not treat hidden files
             |> Result.map(fn files ->
               Enum.filter(files, fn filename ->
                 case filename do
