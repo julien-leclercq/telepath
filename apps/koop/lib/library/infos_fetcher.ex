@@ -4,16 +4,16 @@ defmodule Library.InfosFetcher do
 
     require Logger
 
-    def start_link(path), do: Supervisor.start_link(__MODULE__, [path], name: __MODULE__)
+    def start_link(), do: Supervisor.start_link(__MODULE__, [], name: __MODULE__)
 
     @impl true
-    def init(path) do
+    def init(_) do
       dispatcher = %{
         id: Library.InfosFetcher.Dispatcher,
         start: {
           Library.InfosFetcher.Dispatcher,
           :start_link,
-          [path]
+          []
         }
       }
 
