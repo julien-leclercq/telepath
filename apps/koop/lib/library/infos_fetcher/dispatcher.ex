@@ -26,6 +26,8 @@ defmodule Library.InfosFetcher.Dispatcher do
     {:ok, state}
   end
 
+  def add_path(path), do: GenServer.cast(__MODULE__, {:add_path, path})
+
   @impl true
   def handle_call(:get_state, _from, state), do: {:reply, state, state}
 
