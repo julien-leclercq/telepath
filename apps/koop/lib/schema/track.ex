@@ -14,6 +14,7 @@ defmodule Koop.Schema.Track do
     field(:filename, :string)
     field(:album, :string)
     field(:duration, :float)
+    field(:manually_edited, :boolean, default: false)
   end
 
   @required_params [:filename]
@@ -41,6 +42,11 @@ defmodule Koop.Schema.Track do
     Enum.all?(@non_required_params, is_value?)
   end
 
+  def manual_edition(changeset) do
+    changeset
+    |> change(%{manually_edited: true})
+  end
+
   # ---- Queries ----
   def get_or_create(%Ecto.Changeset{} = track) do
     {_, filename} = fetch_field(track, :filename)
@@ -53,7 +59,7 @@ defmodule Koop.Schema.Track do
     end)
   end
 
-  def update_or_create(%Ecto.Changeset{} = changeset) do
+  def update_or_create(%Ecto.Changeset{} = changeset, opts \\ []) do
     {_, filename} = fetch_field(changeset, :filename)
 
     __MODULE__
@@ -64,10 +70,13 @@ defmodule Koop.Schema.Track do
         Repo.insert(changeset)
       end,
       fn track ->
-        track
-        |> change(changeset.changes)
-        |> Repo.update
+        unless (track.manually_edited && !opts[:erase_manual_edits]) do
+          track
+          |> change(changeset.changes)
+          |> Repo.update
+        end
       end
     )
   end
+
 end
