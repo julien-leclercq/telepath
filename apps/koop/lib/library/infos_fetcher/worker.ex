@@ -29,6 +29,7 @@ defmodule Library.InfosFetcher.Worker do
         else
           path
           |> get_track_infos()
+          |> Track.update_or_create()
           |> Result.ok()
         end
       end

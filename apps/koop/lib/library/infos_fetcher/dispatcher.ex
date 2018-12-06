@@ -78,7 +78,7 @@ defmodule Library.InfosFetcher.Dispatcher do
     {:noreply, new_state}
   end
 
-  def try_to_work(%{tasks_queue: tasks_queue, available_workers: available_workers} = state) do
+  defp try_to_work(%{tasks_queue: tasks_queue, available_workers: available_workers} = state) do
     case {tasks_queue, available_workers} do
       {[], @worker_amount} ->
         Logger.info("Library.InfosFetcher.Dispatcher has finished its work #{inspect(self())}")
