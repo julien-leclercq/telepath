@@ -14,7 +14,6 @@ view torrent =
         showInfosCheckId =
             "show-infos-torrent" ++ String.fromInt torrent.id
     in
-<<<<<<< Updated upstream
     div [ Attrs.class "card torrent" ]
         [ input [ Attrs.type_ "checkbox", Attrs.class "show-files", Attrs.id showFileCheckId ] []
         , input [ Attrs.type_ "checkbox", Attrs.class "show-infos", Attrs.id showInfosCheckId ] []
@@ -23,17 +22,6 @@ view torrent =
             [ div [ Attrs.class "level-right" ]
                 [ label [ Attrs.for showFileCheckId, Attrs.class "button show-files-label level-item" ] []
                 , label [ Attrs.for showInfosCheckId, Attrs.class "button show-infos-label level-item" ] []
-=======
-        tr [ Attrs.class "torrent" ]
-            [ input [ Attrs.type_ "checkbox", Attrs.class "show-files", Attrs.id showFileCheckId ] [] -- hidden
-            , input [ Attrs.type_ "checkbox", Attrs.class "show-infos", Attrs.id showInfosCheckId ] [] -- hidden
-            , td [ Attrs.class "level" ] [ span [ Attrs.class "level-left level-item" ] [ text torrent.name ] ]
-            , td [ Attrs.class "card-footer torrent-header" ]
-                [ td []
-                    [ label [ Attrs.for showFileCheckId, Attrs.class "button show-files-label" ] []
-                    , label [ Attrs.for showInfosCheckId, Attrs.class "button show-infos-label" ] []
-                    ]
->>>>>>> Stashed changes
                 ]
             ]
         , filesView torrent
