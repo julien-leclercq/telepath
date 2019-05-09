@@ -1,7 +1,7 @@
 module Views.TorrentList.List exposing (listHeader, view)
 
 import Data.Torrent exposing (Torrent)
-import Html exposing (Html, div, text)
+import Html exposing (Html, div, table, thead, text)
 import Html.Attributes as Attrs
 import Html.Events exposing (onClick)
 import Pages.Torrents as TorrentsPage
@@ -21,4 +21,8 @@ listHeader =
 
 view : List Torrent -> Html TorrentsPage.Msg
 view torrents =
+<<<<<<< Updated upstream
     div [ Attrs.class "column" ] (listHeader :: List.map Item.view torrents)
+=======
+    div [ Attrs.class "column" ] [ listHeader, table [ Attrs.class "table" ] (List.map Item.view torrents) ]
+>>>>>>> Stashed changes
