@@ -3,7 +3,7 @@ defmodule Koop.App do
 
   require Logger
 
-  def start(_,_) do
+  def start(_, _) do
     children = [
       %{
         id: Library.InfosFetcher.Supervisor,
@@ -15,7 +15,7 @@ defmodule Koop.App do
       }
     ]
 
-    Logger.info "starting koop"
+    Logger.info("starting koop")
     Supervisor.start_link(children, strategy: :one_for_one)
   end
 end

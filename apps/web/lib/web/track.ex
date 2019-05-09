@@ -8,8 +8,9 @@ defmodule Web.Track do
   end
 
   def get_path(track_id) do
-    track = Track
-    |> DB.Repo.get(track_id)
+    track =
+      Track
+      |> DB.Repo.get(track_id)
 
     track.filename
   end

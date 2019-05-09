@@ -64,19 +64,29 @@ defmodule Koop.Schema.Track do
 
     __MODULE__
     |> Repo.get_by(filename: filename)
-    |> Result.from_value
+    |> Result.from_value()
     |> Result.either(
       fn _ ->
         Repo.insert(changeset)
       end,
       fn track ->
-        unless (track.manually_edited && !opts[:erase_manual_edits]) do
+        unless track.manually_edited && !opts[:erase_manual_edits] do
           track
           |> change(changeset.changes)
-          |> Repo.update
+          |> Repo.update()
         end
       end
     )
   end
 
+  defmodule Version do
+    use Ecto.Schema
+
+    schema "track_version" do
+      field :quality, :string
+      field :path, :string
+
+      belongs_to :album_version, Koop.Schema.Album.Version
+    end
+  end
 end

@@ -9,5 +9,4 @@ defmodule DB.Application do
 
     Supervisor.start_link([repo], strategy: :one_for_one)
   end
-
 end

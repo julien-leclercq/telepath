@@ -15,13 +15,12 @@ defmodule Library.InfosFetcher.Dispatcher do
 
   @impl true
   def init(_) do
-    state =
-      %__MODULE__{
-        tasks_queue: [],
-        tasks_state: :in_progress,
-        tasks_results: [],
-        available_workers: @worker_amount
-      }
+    state = %__MODULE__{
+      tasks_queue: [],
+      tasks_state: :in_progress,
+      tasks_results: [],
+      available_workers: @worker_amount
+    }
 
     {:ok, state}
   end
@@ -33,7 +32,8 @@ defmodule Library.InfosFetcher.Dispatcher do
 
   @impl true
   def handle_cast({:add_path, path}, state) do
-    Logger.info "Infos Fetcher adding path and its children : #{path}"
+    Logger.info("Infos Fetcher adding path and its children : #{path}")
+
     state = %{
       state
       | tasks_queue: [{:fetch_infos, path} | state.tasks_queue]

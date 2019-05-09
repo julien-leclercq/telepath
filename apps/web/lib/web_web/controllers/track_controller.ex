@@ -5,6 +5,7 @@ defmodule WebWeb.Api.TrackController do
 
   def index(conn, params) do
     tracks = Web.Track.list(params)
+
     tracks
     |> Result.either(
       fn reason -> json(conn, %{error: reason}) end,
@@ -15,8 +16,8 @@ defmodule WebWeb.Api.TrackController do
   end
 
   def get_file(conn, _params = %{"track_id" => track_id}) do
-    track =
-      Web.Track.get_path(track_id)
+    track = Web.Track.get_path(track_id)
+
     conn
     |> send_file(200, "/#{track}")
   end
