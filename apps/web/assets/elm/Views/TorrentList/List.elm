@@ -21,4 +21,4 @@ listHeader =
 
 view : List Torrent -> Html TorrentsPage.Msg
 view torrents =
-    div [ Attrs.class "column" ] (listHeader :: List.map Item.view torrents)
+    div [ Attrs.class "column" ] [ listHeader, table [ Attrs.class "table" ] (List.map Item.view torrents) ]
