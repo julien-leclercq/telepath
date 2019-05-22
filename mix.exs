@@ -5,7 +5,7 @@ defmodule TransmissionUi.Mixfile do
     [
       app: :telepath_legacy_umbrella,
       version: "0.1.0",
-      build_path: "build",
+      build_path: "_build",
       config_path: "config/config.exs",
       deps_path: "deps",
       lockfile: "mix.lock",
