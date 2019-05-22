@@ -3,30 +3,42 @@ defmodule TransmissionUi.Mixfile do
 
   def project do
     [
-      apps_path: "apps",
+      app: :telepath_legacy_umbrella,
+      version: "0.1.0",
+      build_path: "build",
+      config_path: "config/config.exs",
+      deps_path: "deps",
+      lockfile: "mix.lock",
+      elixir: "~> 1.8.1",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps()
     ]
   end
 
-  # Dependencies can be Hex packages:
-  #
-  #   {:my_dep, "~> 0.3.0"}
-  #
-  # Or git/path repositories:
-  #
-  #   {:my_dep, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
-  #
-  # Type "mix help deps" for more examples and options.
-  #
-  # Dependencies listed here are available only for this project
-  # and cannot be accessed from applications inside the apps folder
   defp deps do
     [
+      {:ecto_sql, "~> 3.0"},
+      # {:ecto_mnesia, "~> 0.9.1"},
+      {:ffmpex, "~> 0.5.2"},
+      {:httpoison, "~> 1.0"},
+      {:gettext, "~> 0.11"},
+      {:kaur, "~> 1.1.0"},
+      {:phoenix, "~> 1.4.0"},
+      {:phoenix_ecto, "~> 4.0"},
+      {:phoenix_html, "~> 2.10"},
+      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:phoenix_pubsub, "~> 1.0"},
+      {:plug_cowboy, "~> 2.0"},
+      {:plug, "~> 1.7"},
+
+      # Test only
+      {:response_snapshot, "~> 1.0.0", only: [:test]},
+
+      # NOT RUNTIME
       {:credo, "~> 0.9", only: [:dev, :test], runtime: false},
-      {:mix_under,
-       git: "https://github.com/vic/mix_under", ref: "9690e8336b4f0bd80f9e04fcdb4e4a5d66384c74"}
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:ex_doc, "~> 0.16", only: :dev, runtime: false}
     ]
   end
 end
