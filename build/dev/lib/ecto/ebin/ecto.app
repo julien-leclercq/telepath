@@ -75,10 +75,7 @@
                         'Elixir.Mix.Ecto','Elixir.Mix.Tasks.Ecto',
                         'Elixir.Mix.Tasks.Ecto.Create',
                         'Elixir.Mix.Tasks.Ecto.Drop',
-                        'Elixir.Mix.Tasks.Ecto.Gen.Repo',
-                        'Elixir.Poison.Encoder.Decimal',
-                        'Elixir.Poison.Encoder.Ecto.Association.NotLoaded',
-                        'Elixir.Poison.Encoder.Ecto.Schema.Metadata']},
+                        'Elixir.Mix.Tasks.Ecto.Gen.Repo']},
               {registered,[]},
-              {vsn,"3.0.3"},
+              {vsn,"3.1.4"},
               {mod,{'Elixir.Ecto.Application',[]}}]}.

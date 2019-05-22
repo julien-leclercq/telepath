@@ -2,7 +2,8 @@
              [{applications,[kernel,stdlib,elixir]},
               {description,"Arbitrary precision decimal arithmetic."},
               {modules,['Elixir.Decimal','Elixir.Decimal.Context',
-                        'Elixir.Decimal.Error','Elixir.Inspect.Decimal',
+                        'Elixir.Decimal.Error','Elixir.Decimal.Macros',
+                        'Elixir.Inspect.Decimal',
                         'Elixir.String.Chars.Decimal']},
               {registered,[]},
-              {vsn,"1.5.0"}]}.
+              {vsn,"1.7.0"}]}.

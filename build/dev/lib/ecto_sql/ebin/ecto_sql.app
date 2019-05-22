@@ -6,6 +6,7 @@
                         'Elixir.Ecto.Adapter.Migration',
                         'Elixir.Ecto.Adapter.Structure',
                         'Elixir.Ecto.Adapters.MySQL',
+                        'Elixir.Ecto.Adapters.MyXQL',
                         'Elixir.Ecto.Adapters.Postgres',
                         'Elixir.Ecto.Adapters.SQL',
                         'Elixir.Ecto.Adapters.SQL.Application',
@@ -30,6 +31,6 @@
                         'Elixir.Mix.Tasks.Ecto.Migrations',
                         'Elixir.Mix.Tasks.Ecto.Rollback']},
               {registered,[]},
-              {vsn,"3.0.0"},
+              {vsn,"3.1.3"},
               {env,[{postgres_map_type,<<"jsonb">>}]},
               {mod,{'Elixir.Ecto.Adapters.SQL.Application',[]}}]}.

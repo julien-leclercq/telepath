@@ -64,4 +64,4 @@
                         'Elixir.Earmark.Types',link_text_lexer,
                         link_text_parser,string_lexer]},
               {registered,[]},
-              {vsn,"1.2.5"}]}.
+              {vsn,"1.3.2"}]}.
