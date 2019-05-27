@@ -38,4 +38,4 @@ config :telepath, Telepath.Repo,
 
 config :telepath, ecto_repos: [Telepath.Repo]
 
-config :telepath, Telepath.Repo, adapter: EctoMnesia.Adapter
+config :telepath, Telepath.Repo, adapter: Sqlite.Ecto2

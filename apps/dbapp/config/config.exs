@@ -4,7 +4,7 @@ use Mix.Config
 
 config :db, ecto_repos: [DB.Repo]
 
-config :db, DB.Repo, adapter: EctoMnesia.Adapter
+config :db, DB.Repo, adapter: Sqlite.Ecto2
 
 config :mnesia,
   dir: '../../priv/data/mnesia'
