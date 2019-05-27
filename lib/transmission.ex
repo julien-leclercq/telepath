@@ -149,11 +149,11 @@ defmodule Transmission do
     Logger.info(fn -> "[transmission] sending #{method} to #{host}:#{port}" end)
   end
 
-  defp process_request_body(request) do
+  def process_request_body(request) do
     Poison.encode!(request)
   end
 
-  defp process_request_options(options) do
+  def process_request_options(options) do
     options = [follow_redirect: true] ++ options
     proxy = Application.get_env(Transmission, :proxy)
 
@@ -172,7 +172,7 @@ defmodule Transmission do
     end
   end
 
-  defp process_url(url) do
+  def process_url(url) do
     "#{url}/transmission/rpc"
   end
 

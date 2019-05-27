@@ -34,6 +34,6 @@ defmodule WebWeb.Router do
     # Use the default browser stack
     pipe_through(:browser)
 
-    get("/*_application_route", PageController, :index)
+    get("/*application_route", PageController, :index)
   end
 end

@@ -103,7 +103,7 @@ defmodule Telepath.Data.Seedbox do
 
   # ---- Private ----
 
-  defp auth_changeset(auth \\ %Auth{}, params) do
+  defp auth_changeset(auth, params) do
     auth
     |> cast(params, [:username, :password])
   end

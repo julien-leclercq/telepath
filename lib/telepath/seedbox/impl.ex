@@ -4,7 +4,6 @@ defmodule Telepath.Seedbox.Impl do
   """
   alias Kaur.Result
   alias Telepath.Data.Seedbox
-  alias Telepath.Seedbox.Auth
 
   import Ecto.Changeset
 
