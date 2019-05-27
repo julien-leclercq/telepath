@@ -3,34 +3,36 @@ defmodule TransmissionUi.Mixfile do
 
   def project do
     [
-      app: :telepath_legacy_umbrella,
-      version: "0.1.0",
-      build_path: "_build",
-      config_path: "config/config.exs",
-      deps_path: "deps",
-      lockfile: "mix.lock",
-      elixir: "~> 1.8.1",
+      app: :telepath,
       build_embedded: Mix.env() == :prod,
+      build_path: "_build",
+      compilers: [:phoenix, :gettext] ++ Mix.compilers(),
+      config_path: "config/config.exs",
+      deps: deps(),
+      deps_path: "deps",
+      elixir: "~> 1.8.1",
+      lockfile: "mix.lock",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      version: "0.1.0"
     ]
   end
 
   defp deps do
     [
-      {:ecto_sql, "~> 3.1.3"},
+      {:ecto, "~> 2.2.12"},
       # {:ecto_mnesia, "~> 0.9.1"},
       {:ffmpex, "~> 0.5.2"},
       {:httpoison, "~> 1.0"},
       {:gettext, "~> 0.16.1"},
       {:kaur, "~> 1.1.0"},
       {:phoenix, "~> 1.4.0"},
-      {:phoenix_ecto, "~> 4.0.0"},
+      {:phoenix_ecto, "~> 3.6.0"},
       {:phoenix_html, "~> 2.13.2"},
       {:phoenix_live_reload, "~> 1.2.0", only: :dev},
       {:phoenix_pubsub, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:plug, "~> 1.8.0"},
+      {:sqlite_ecto2, "~> 2.2.4"},
 
       # Test only
       {:response_snapshot, "~> 1.0.0", only: [:test]},
