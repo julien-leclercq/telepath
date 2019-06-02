@@ -1,4 +1,4 @@
-defmodule Koop.App do
+defmodule Telepath.Application do
   use Application
 
   require Logger
@@ -12,6 +12,16 @@ defmodule Koop.App do
           :start_link,
           []
         }
+      },
+      %{id: WebWeb.Endpoint, start: {WebWeb.Endpoint, :start_link, []}},
+      %{
+        id: Telepath.Seedbox.Repository,
+        start: {Telepath.Seedbox.Repository, :start_link, []},
+        type: :supervisor
+      },
+      %{
+        id: DB.Repo,
+        start: {DB.Repo, :start_link, []}
       }
     ]
 

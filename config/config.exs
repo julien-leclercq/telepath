@@ -9,11 +9,29 @@ use Mix.Config
 # back to each application for organization purposes.
 import_config "../apps/*/config/config.exs"
 
-config :mnesia,
-  dir: 'priv/data/mnesia'
 # Sample configuration (overrides the imported configuration above):
-#
-#     config :logger, :console,
-#       level: :info,
-#       format: "$date $time [$level] $metadata$message\n",
-#       metadata: [:user_id]
+
+config :logger, :console,
+  level: :info,
+  format: "$date $time [$level] $metadata$message\n"
+
+config :db, ecto_repos: [DB.Repo]
+config :telepath, ecto_repos: [Telepath.Repo]
+
+config :db, DB.Repo, adapter: Sqlite.Ecto2
+
+config :telepath, Telepath.Repo, adapter: Sqlite.Ecto2
+
+config :web, namespace: Web
+
+# Configures the endpoint
+config :web, WebWeb.Endpoint,
+  url: [host: "localhost"],
+  secret_key_base: "rO7BXmfmnblTorOglPkF9krVUcvNdXgS5RIaAVSzp138jQ0PZ4HHqjImxW5laLd0",
+  render_errors: [view: WebWeb.ErrorView, accepts: ~w(html json)],
+  pubsub: [name: Web.PubSub, adapter: Phoenix.PubSub.PG2]
+
+# Configures Elixir's Logger
+config :logger, :console,
+  format: "$time $metadata[$level] $message\n",
+  metadata: [:request_id]

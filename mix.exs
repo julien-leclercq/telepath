@@ -17,6 +17,13 @@ defmodule TransmissionUi.Mixfile do
     ]
   end
 
+  def application do
+    [
+      mod: {Telepath.Application, []},
+      extra_applications: [:logger, :runtime_tools]
+    ]
+  end
+
   defp deps do
     [
       {:ecto, "~> 2.2.12"},
